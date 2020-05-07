@@ -1,0 +1,13 @@
+{
+		"personnel":{
+			"name":"孙策",
+			"project":"SOP1.5",
+			"grade":{
+				"startTime":"2020/3/27 18:25:09",
+				"endTime":"2020/3/30 10:09:35",
+				"setupFilePath":"CNS3.0_2020-03-27_18-25-04.log",
+					}
+					}
+	"Output_Path":"CNS3MemoryNew.xls",
+	"Valgrind_File":"CNS3.0_ST_Checklist_WDXTest_SOP1&SOP1.5.xlsx"
+}
