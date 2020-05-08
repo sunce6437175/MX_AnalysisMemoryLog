@@ -11,13 +11,15 @@ import json
 import requests
 import codecs
 from bs4 import BeautifulSoup
+
 deWeightTime = "top -m | grep MXNavi"
 # 原有setup配置项
 setupFileName = "SETUP.txt"
 # 最新批量json配置项
-configJsonName = "MX_AnalysisMemoryLog/config/config.json"
+configJsonName = "config/config.json"
 # 原有setup配置项地址获取
 setupFilePath = os.path.join(os.getcwd(),setupFileName).replace("\\",'/')
+
 # 最新批量json配置项地址获取
 configJsonPath = os.path.join(os.getcwd(),configJsonName).replace("\\",'/')
 
@@ -40,10 +42,6 @@ def setup_Working_Directory(self):
             readPath = os.path.join(os.getcwd(),readFileName).replace("\\",'/')
             writePath = os.path.join(os.getcwd(),writeFileName).replace("\\",'/')
             exclPath = os.path.join(os.getcwd(),exclFileName).replace("\\",'/')
-            # print("readname:%s"%(readFileName))
-            # print("readPath:%s"%(readPath))
-            # print("writePath:%s"%(writePath))
-            # print("exclPath:%s"%(exclPath))
     return(startTime,finishTime,readPath,writeFileName,exclPath)
 # 判断内存开始和结束以及最大值
 def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
@@ -53,62 +51,58 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
     tempList = []
     templine = 0
     tempNum = 0
-    linelist = []
+    
 
     # with open(readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
-    with open(readPath,'r') as read_file:
-        startTest=""
-        endTest=""
-            # data = data.decode("utf-16-le",errors="ignore")
-        # line = read_file.read()
+    # with open(readPath,'r') as read_file:
+    startTest=""
+    endTest=""
+    print(type(readPath))
 
+    for line in range(len(readPath)):
+        
+        # print(type(line))
+        # print(len(line))
+        tempLienNum = tempLienNum + 1
 
+        if startTime in line:
+            print('12312312312312312313')
+            if deWeightTime in line:
+                continue
+            else:
+                startLineNum = tempLienNum
+                # print(startLineNum)
+        if finishTime in line:
+            if "END" in line:
+                continue
+            else:
+                finishLineNum = tempLienNum
+                # print(finishLineNum)
 
+    if startLineNum <= finishLineNum and finishLineNum > startLineNum:
+        with open(readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
+            for line in (read_file.readlines()):
+                for xline in line:
+                    xline = xline.strip('\n')
+                    if tempNum >= startLineNum and tempNum < finishLineNum:
 
-    #     for line in (data):
-    #         # print(line)
-    #         # print(type(line))
-    #         tempLienNum = tempLienNum + 1
-    #         if startTime in line:
-    #             print('111111111111111111111')
-    #             if deWeightTime in line:
-    #                 continue
-    #             else:
-    #                 startLineNum = tempLienNum
-    #                 # print(startLineNum)
-    #         if finishTime in line:
-    #             if "END" in line:
-    #                 continue
-    #             else:
-    #                 finishLineNum = tempLienNum
-    #                 # print(finishLineNum)
+                        a = xline.split()
+                        b = a[5]
+                        tempList.append(int(b[:-1]))
+                        
+                    else:
+                        pass
+                    tempNum = tempNum + 1
+    else:
+        print("！输入参时间错误！")
+    print("起始内存值：%s MB,结束内存值：%s MB,最大内存值：%s MB"%(tempList[0],tempList[-1],max(tempList)))
 
-    #     if startLineNum <= finishLineNum and finishLineNum > startLineNum:
-    #         with open(readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
-    #             for line in (read_file.readlines()):
-    #                 for xline in line:
-    #                     xline = xline.strip('\n')
-    #                     if tempNum >= startLineNum and tempNum < finishLineNum:
+    startNum = '起始内存值: ' + str(tempList[0]) + ' MB'
+    endNum = '结束内存值: ' + str(tempList[-1]) + ' MB'
+    maxNum = '最大内存值: ' + str(max(tempList)) + ' MB'
+    # print(startNum )
 
-    #                         a = xline.split()
-    #                         # print(a)
-    #                         b = a[5]
-    #                         tempList.append(int(b[:-1]))
-                            
-    #                     else:
-    #                         pass
-    #                     tempNum = tempNum + 1
-    #                 # print(tempList)
-    #     else:
-    #         print("！输入参时间错误！")
-    #     print("起始内存值：%s MB,结束内存值：%s MB,最大内存值：%s MB"%(tempList[0],tempList[-1],max(tempList)))
-
-    # startNum = '起始内存值: ' + str(tempList[0]) + ' MB'
-    # endNum = '结束内存值: ' + str(tempList[-1]) + ' MB'
-    # maxNum = '最大内存值: ' + str(max(tempList)) + ' MB'
-    # # print(startNum )
-
-    # return(startNum,endNum,maxNum)
+    return(startNum,endNum,maxNum)
 # 读取excel的类
 class ExcelData():
     # 初始化方法
@@ -198,20 +192,44 @@ class ExcelWrite(object):
 
 
     # 方法1
-
-def parseFile(filepath):
+# UCS-2 little endian方法A
+def parseFileA(filepath):
+    linelist = []
     try:
         with open(filepath,'r') as fp:
-                temp = 0
-                encoding = 'utf-16-le'
-                with codecs.open(filepath, 'r', encoding) as fp2:
-                    soup = BeautifulSoup(fp2)
-                    print(soup)
-                    temp = +1
-                    print(temp)             
+            temp = 0
+            encoding = 'utf-16-le'
+            with codecs.open(filepath, 'r', encoding) as fp2:
+                soup = BeautifulSoup(fp2)
+                # print(soup)
+                print(type(soup))
+                linelist.append(soup)
+                # print(linelist)
+        return(linelist)
     except Exception:
-        print('[ERROR]--')
+        print('[ERROR]')
+# UCS-2 little endian方法B
+def parseFileB(filepath):
+    try:
+        lineList = [] # 存放每一行的内容
+        with open(filepath, 'r') as fp:
+            line = fp.read()
+            print(line)
+            if line.startswith('\xff\xfe'):
+                encoding = 'utf-16-le'
+                fp2 = codecs.open(filepath, 'r', encoding)
+                lineList = fp2.readlines()
+                fp2.stream.close()
+        for i in lineList: # 打印每一行
+            print(i)
+    except Exception:
+        print('[ERROR]')
+
+
+
+
 if __name__ == '__main__':
+    
     # sheetname = "Sheet1"
     with open(configJsonPath) as c:
         config = json.load(c)
@@ -223,44 +241,21 @@ if __name__ == '__main__':
                         data_grade = data_perison["grade"]
                         data_startTime = data_grade['startTime']
                         data_endTime = data_grade['endTime']
-                        data_setupFileName = "MX_AnalysisMemoryLog/" + data_grade['setupFilePath']
+                        data_setupFileName = data_grade['setupFilePath']
                         data_setupFilePath = os.path.join(os.getcwd(),data_setupFileName).replace("\\",'/')
-                        # print(data_startTime)
-                        # print(data_endTime)
-                        # print(data_setupFilePath)
-                        # print('===================================')
                     else:
                         pass
-                parseFile(data_setupFilePath)
+                parseFileB(data_setupFilePath)
             else:
                 pass
             
     #判断 Output_Path是否为空
     # if not os.path.exists(config['Output_Path']):
     #     os.makedirs(config['Output_Path'])
-    #
-    # 方法2
-        # try:
-        #     lineList = [] # 存放每一行的内容
-        #     with open(data_setupFilePath, 'r') as fp:
-        #         line = fp.read()
-        #         if line.startswith('\xff\xfe'):
-        #             encoding = 'utf-16-le'
-        #             fp2 = codecs.open(data_setupFilePath, 'r', encoding)
-        #             lineList = fp2.readlines()
-        #             fp2.stream.close()
-        #     for i in lineList: # 打印每一行
-        #         print(i)
-        # except Exception:
-        #     print ('[ERROR]--')
-
-
-
-
-
+    
     # memoryInfo = MemorylogManager(deWeightTime,setupFilePath)
     # startTime,finishTime,readPath,writeFileName,exclPath = setup_Working_Directory(memoryInfo)
-        check_memorylog(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
+        # check_memorylog(data_startTime,data_endTime,transformList,config['Output_Path'],config['Valgrind_File'])
         # startNum,endNum,maxNum = check_memorylog(data_startTime,data_endTime,data_setupFilePath,
         # config['Output_Path'],config['Valgrind_File'])
 
