@@ -12,6 +12,7 @@ import requests
 import codecs
 from bs4 import BeautifulSoup
 
+# 搜索内存关键字
 deWeightTime = "top -m | grep MXNavi"
 # 原有setup配置项
 setupFileName = "SETUP.txt"
@@ -19,16 +20,14 @@ setupFileName = "SETUP.txt"
 configJsonName = "config/config.json"
 # 原有setup配置项地址获取
 setupFilePath = os.path.join(os.getcwd(),setupFileName).replace("\\",'/')
-
 # 最新批量json配置项地址获取
 configJsonPath = os.path.join(os.getcwd(),configJsonName).replace("\\",'/')
-
-# 读取key和设置文档的类
+# 读取key和设置文档的类(不适用可以删除)
 class MemorylogManager():
     def __init__(self,memoryKeyword,setupFilePath):
         self.memoryKeyword = memoryKeyword
         self.setupFilePath = setupFilePath
-# 读取setup设置项参数
+# 读取setup设置项参数(不适用可以删除)
 def setup_Working_Directory(self):
     with open(self.setupFilePath) as read_file:
         for line in read_file:
@@ -51,58 +50,53 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
     tempList = []
     templine = 0
     tempNum = 0
-    
 
-    # with open(readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
-    # with open(readPath,'r') as read_file:
-    startTest=""
-    endTest=""
-    print(type(readPath))
+    with open(readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
+        startTest=""
+        endTest=""
 
-    for line in range(len(readPath)):
-        
-        # print(type(line))
-        # print(len(line))
-        tempLienNum = tempLienNum + 1
+        for line in read_file:
+            
+            tempLienNum = tempLienNum + 1
+            if startTime in line:
+                if deWeightTime in line:
+                    continue
+                else:
+                    startLineNum = tempLienNum
+                    # print(startLineNum)
+            if finishTime in line:
+                if "END" in line:
+                    continue
+                else:
+                    finishLineNum = tempLienNum
+                    # print(finishLineNum)
 
-        if startTime in line:
-            print('12312312312312312313')
-            if deWeightTime in line:
-                continue
-            else:
-                startLineNum = tempLienNum
-                # print(startLineNum)
-        if finishTime in line:
-            if "END" in line:
-                continue
-            else:
-                finishLineNum = tempLienNum
-                # print(finishLineNum)
+        if startLineNum <= finishLineNum and finishLineNum > startLineNum:
+            with open(readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
 
-    if startLineNum <= finishLineNum and finishLineNum > startLineNum:
-        with open(readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
-            for line in (read_file.readlines()):
-                for xline in line:
+                for xline in read_file:
                     xline = xline.strip('\n')
                     if tempNum >= startLineNum and tempNum < finishLineNum:
 
                         a = xline.split()
+                        # print(a)
                         b = a[5]
                         tempList.append(int(b[:-1]))
                         
                     else:
                         pass
                     tempNum = tempNum + 1
-    else:
-        print("！输入参时间错误！")
+                # print(tempList)
+        else:
+            print("！输入参时间错误！")
     print("起始内存值：%s MB,结束内存值：%s MB,最大内存值：%s MB"%(tempList[0],tempList[-1],max(tempList)))
 
     startNum = '起始内存值: ' + str(tempList[0]) + ' MB'
     endNum = '结束内存值: ' + str(tempList[-1]) + ' MB'
     maxNum = '最大内存值: ' + str(max(tempList)) + ' MB'
     # print(startNum )
-
     return(startNum,endNum,maxNum)
+
 # 读取excel的类
 class ExcelData():
     # 初始化方法
@@ -192,7 +186,7 @@ class ExcelWrite(object):
 
 
     # 方法1
-# UCS-2 little endian方法A
+# UCS-2 little endian方法A(不适用可以删除)
 def parseFileA(filepath):
     linelist = []
     try:
@@ -208,7 +202,7 @@ def parseFileA(filepath):
         return(linelist)
     except Exception:
         print('[ERROR]')
-# UCS-2 little endian方法B
+# UCS-2 little endian方法B(不适用可以删除)
 def parseFileB(filepath):
     try:
         lineList = [] # 存放每一行的内容
@@ -226,8 +220,6 @@ def parseFileB(filepath):
         print('[ERROR]')
 
 
-
-
 if __name__ == '__main__':
     
     # sheetname = "Sheet1"
@@ -239,26 +231,33 @@ if __name__ == '__main__':
                 for item in data_perison.keys():
                     if item == "grade":
                         data_grade = data_perison["grade"]
+                        data_name = data_perison["name"]
                         data_startTime = data_grade['startTime']
                         data_endTime = data_grade['endTime']
                         data_setupFileName = data_grade['setupFilePath']
                         data_setupFilePath = os.path.join(os.getcwd(),data_setupFileName).replace("\\",'/')
+                        print('==============================')
+                        print(data_name)
+                        print(data_startTime)
+                        print(data_endTime)
+                        print(data_setupFilePath)
+                        startNum,endNum,maxNum = check_memorylog(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
+                        print('==============================')
                     else:
                         pass
-                parseFileB(data_setupFilePath)
+                        # print("JSON文件设置项配置错误")
+                    
             else:
                 pass
-            
+                # print("不存在Output_Path和Valgrind_File文件夹")
+
     #判断 Output_Path是否为空
     # if not os.path.exists(config['Output_Path']):
     #     os.makedirs(config['Output_Path'])
-    
+
+    # 旧的设置项管理模块(不适用可以删除)
     # memoryInfo = MemorylogManager(deWeightTime,setupFilePath)
     # startTime,finishTime,readPath,writeFileName,exclPath = setup_Working_Directory(memoryInfo)
-        # check_memorylog(data_startTime,data_endTime,transformList,config['Output_Path'],config['Valgrind_File'])
-        # startNum,endNum,maxNum = check_memorylog(data_startTime,data_endTime,data_setupFilePath,
-        # config['Output_Path'],config['Valgrind_File'])
-
 
     # excel表的方法分析类
     # get_data = ExcelData(exclPath,sheetname)
