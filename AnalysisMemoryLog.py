@@ -55,7 +55,7 @@ def check_memoryTime(startTime,finishTime,readPath,writePath,exclPath):
     tempList = []
     templine = 0
     tempNum = 0
-    kPI = 800
+    kPI = 910
 #     # 由字符串格式转化为日期格式的函数为: datetime.datetime.strptime()
     vSt = datetime.datetime.strptime(startTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
     vFt = datetime.datetime.strptime(finishTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
@@ -64,10 +64,9 @@ def check_memoryTime(startTime,finishTime,readPath,writePath,exclPath):
 #     # 2.1）抽取开始和结束的时间戳，判断有效运行时间（单位：小时）
     dayCtimes = ((vSt - vFt).seconds)/3600
     print("本次有效时间-----共%.2f小时-----"%(dayCtimes))
-
-#     # 2.2）以及当内存超1024MB时所需时间。（超1024MB才需判断）
+#     # 2.2）以及当内存超1024MB时所需时间。（超 kpi xxxxMB才需判断）
     with open(readPath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
-        for line in readPath:
+        for line in read_file:
             tempLienNum = tempLienNum + 1
             if startTime in line:
                 if deWeightTime in line:
@@ -79,25 +78,38 @@ def check_memoryTime(startTime,finishTime,readPath,writePath,exclPath):
                     continue
                 else:
                     finishLineNum = tempLienNum
-            if startLineNum <= finishLineNum and finishLineNum > startLineNum:
-                with open(readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
-                    for xline in read_file:
-                        xline = xline.strip('\n')
-                        if tempNum >= startLineNum and tempNum < finishLineNum:
-                            a = xline.split()
-                            b = a[5]
-                            tempList.append(int(b[:-1]))
+        if startLineNum <= finishLineNum and finishLineNum > startLineNum:
+            with open(readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
+                for xline in read_file:
+                    xline = xline.strip('\n')
+                    if tempNum >= startLineNum and tempNum < finishLineNum:
+                        a = xline.split()
+                        b = a[5]
+                        # tempList.append(int(b[:-1]))
+                        if int(b[:-1]) == kPI :
+                            surpassDay = str((a[0]).strip('['))
+                            surpassHour = (a[1])
+                            surpassStr = (surpassDay + ' '+ surpassHour).rsplit(']')
+                            surpassTime = datetime.datetime.strptime((surpassStr[0]).replace("/",'-'),"%Y-%m-%d %H:%M:%S")
+                            print("开始超过%s的时间戳%s"%(kPI,a[0] + ' ' +a[1]))
+                            surpassTimeS = ((vSt - surpassTime).seconds)/3600
+                            print("导航放置%.2f小时到达 %s MB"%(surpassTimeS,kPI))
+                            break
                         else:
                             pass
-                        tempNum = tempNum + 1
-                    for xKPI in range(len(tempList)):
-                        if tempList[xKPI] > kPI :
-                            print("大于的num:%s"%(tempList[xKPI]))
-                        else:
-                            print("不存在大于%s的本次"%(kPI))
-                        
-            else:
-                pass
+                    else:
+                        pass
+                    tempNum = tempNum + 1
+
+                # for xKPI in range(len(tempList)):
+                #     if tempList[xKPI] >= kPI :
+                #         pass
+                #         # print("大于的num:%s"%(tempList[xKPI]))
+                #     else:
+                #         pass
+                #         # print("不存在大于%s的本次"%(kPI))      
+        else:
+            pass
     
     return(dayCtimes)
 # 判断内存开始和结束以及最大值
@@ -113,20 +125,18 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
     with open(readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
 
         for line in read_file:
-            
             tempLienNum = tempLienNum + 1
             if startTime in line:
                 if deWeightTime in line:
                     continue
                 else:
                     startLineNum = tempLienNum
-                    # print(startLineNum)
+
             if finishTime in line:
                 if "END" in line:
                     continue
                 else:
                     finishLineNum = tempLienNum
-                    # print(finishLineNum)
 
         if startLineNum <= finishLineNum and finishLineNum > startLineNum:
             with open(readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
@@ -278,8 +288,9 @@ if __name__ == '__main__':
     # sheetname = "Sheet1"
     with open(configJsonPath) as c:
         config = json.load(c)
+
     #判断 Output_Path 文件夹是否存在
-        if not os.path.exists(config['Output_Path']):
+        if os.path.exists(config['Output_Path']):
             print("Output_Path 已存在")
         else:
             #结果False 就创建文件夹 
@@ -296,10 +307,10 @@ if __name__ == '__main__':
                         data_setupFileName = data_grade['setupFilePath']
                         data_setupFilePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),data_setupFileName).replace("\\",'/')
                         print('==============================')
-                        print(data_name)
-                        print(data_startTime)
-                        print(data_endTime)
-                        print(data_setupFilePath)
+                        # print(data_name)
+                        # print(data_startTime)
+                        # print(data_endTime)
+                        # print(data_setupFilePath)
                         startNum,endNum,maxNum = check_memorylog(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
                         validTime = check_memoryTime(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
                         print('==============================')
