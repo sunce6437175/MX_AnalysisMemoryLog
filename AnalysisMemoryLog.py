@@ -18,15 +18,19 @@ deWeightTime = "top -m | grep MXNavi"
 setupFileName = "SETUP.txt"
 # 最新批量json配置项
 configJsonName = "config/config.json"
-# 原有setup配置项地址获取
+
+# 原有setup配置项地址获取(当前工作路径)
 setupFilePath = os.path.join(os.getcwd(),setupFileName).replace("\\",'/')
-# 最新批量json配置项地址获取
-configJsonPath = os.path.join(os.getcwd(),configJsonName).replace("\\",'/')
+
+# 最新批量json配置项地址获取(获取当前文件的绝对路径)
+configJsonPath = os.path.join(os.path.abspath(os.path.dirname(__file__)),configJsonName).replace("\\",'/')
+
 # 读取key和设置文档的类(不适用可以删除)
 class MemorylogManager():
     def __init__(self,memoryKeyword,setupFilePath):
         self.memoryKeyword = memoryKeyword
         self.setupFilePath = setupFilePath
+
 # 读取setup设置项参数(不适用可以删除)
 def setup_Working_Directory(self):
     with open(self.setupFilePath) as read_file:
@@ -42,6 +46,60 @@ def setup_Working_Directory(self):
             writePath = os.path.join(os.getcwd(),writeFileName).replace("\\",'/')
             exclPath = os.path.join(os.getcwd(),exclFileName).replace("\\",'/')
     return(startTime,finishTime,readPath,writeFileName,exclPath)
+
+#判断有效运行时间
+def check_memoryTime(startTime,finishTime,readPath,writePath,exclPath):
+    startLineNum = 0
+    finishLineNum = 0
+    tempLienNum = 0
+    tempList = []
+    templine = 0
+    tempNum = 0
+    kPI = 800
+#     # 由字符串格式转化为日期格式的函数为: datetime.datetime.strptime()
+    vSt = datetime.datetime.strptime(startTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
+    vFt = datetime.datetime.strptime(finishTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
+#     # print("开始时间：%s 和对应格式 %s"%(vSt,type(vSt)))
+#     # print("结束时间：%s 和对应格式 %s"%(vSt,type(vFt)))
+#     # 2.1）抽取开始和结束的时间戳，判断有效运行时间（单位：小时）
+    dayCtimes = ((vSt - vFt).seconds)/3600
+    print("本次有效时间-----共%.2f小时-----"%(dayCtimes))
+
+#     # 2.2）以及当内存超1024MB时所需时间。（超1024MB才需判断）
+    with open(readPath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
+        for line in readPath:
+            tempLienNum = tempLienNum + 1
+            if startTime in line:
+                if deWeightTime in line:
+                    continue
+                else:
+                    startLineNum = tempLienNum
+            if finishTime in line:
+                if "END" in line:
+                    continue
+                else:
+                    finishLineNum = tempLienNum
+            if startLineNum <= finishLineNum and finishLineNum > startLineNum:
+                with open(readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
+                    for xline in read_file:
+                        xline = xline.strip('\n')
+                        if tempNum >= startLineNum and tempNum < finishLineNum:
+                            a = xline.split()
+                            b = a[5]
+                            tempList.append(int(b[:-1]))
+                        else:
+                            pass
+                        tempNum = tempNum + 1
+                    for xKPI in range(len(tempList)):
+                        if tempList[xKPI] > kPI :
+                            print("大于的num:%s"%(tempList[xKPI]))
+                        else:
+                            print("不存在大于%s的本次"%(kPI))
+                        
+            else:
+                pass
+    
+    return(dayCtimes)
 # 判断内存开始和结束以及最大值
 def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
     startLineNum = 0
@@ -51,9 +109,8 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
     templine = 0
     tempNum = 0
 
-    with open(readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
-        startTest=""
-        endTest=""
+    #取得开始结束以及最大值 
+    with open(readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
 
         for line in read_file:
             
@@ -79,14 +136,11 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
                     if tempNum >= startLineNum and tempNum < finishLineNum:
 
                         a = xline.split()
-                        # print(a)
                         b = a[5]
                         tempList.append(int(b[:-1]))
-                        
                     else:
                         pass
                     tempNum = tempNum + 1
-                # print(tempList)
         else:
             print("！输入参时间错误！")
     print("起始内存值：%s MB,结束内存值：%s MB,最大内存值：%s MB"%(tempList[0],tempList[-1],max(tempList)))
@@ -94,7 +148,8 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
     startNum = '起始内存值: ' + str(tempList[0]) + ' MB'
     endNum = '结束内存值: ' + str(tempList[-1]) + ' MB'
     maxNum = '最大内存值: ' + str(max(tempList)) + ' MB'
-    # print(startNum )
+    # 
+
     return(startNum,endNum,maxNum)
 
 # 读取excel的类
@@ -152,6 +207,7 @@ class ExcelData():
             datas.append(sheet_data)
         # 返回从excel中获取到的数据：以列表存字典的形式返回
         return datas
+
 # 覆盖写入的类
 class ExcelWrite(object):
     def __init__(self,write_Path):
@@ -184,8 +240,6 @@ class ExcelWrite(object):
         else:
             print("传参错误,单元格：%i个,写入值：%i个" % (len(cells), len(values)))
 
-
-    # 方法1
 # UCS-2 little endian方法A(不适用可以删除)
 def parseFileA(filepath):
     linelist = []
@@ -221,10 +275,15 @@ def parseFileB(filepath):
 
 
 if __name__ == '__main__':
-    
     # sheetname = "Sheet1"
     with open(configJsonPath) as c:
         config = json.load(c)
+    #判断 Output_Path 文件夹是否存在
+        if not os.path.exists(config['Output_Path']):
+            print("Output_Path 已存在")
+        else:
+            #结果False 就创建文件夹 
+            os.makedirs(config['Output_Path'])
         for d in (config.keys()):
             if d != "Output_Path" and d != "Valgrind_File" :
                 data_perison = config.get(d)
@@ -235,13 +294,14 @@ if __name__ == '__main__':
                         data_startTime = data_grade['startTime']
                         data_endTime = data_grade['endTime']
                         data_setupFileName = data_grade['setupFilePath']
-                        data_setupFilePath = os.path.join(os.getcwd(),data_setupFileName).replace("\\",'/')
+                        data_setupFilePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),data_setupFileName).replace("\\",'/')
                         print('==============================')
                         print(data_name)
                         print(data_startTime)
                         print(data_endTime)
                         print(data_setupFilePath)
                         startNum,endNum,maxNum = check_memorylog(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
+                        validTime = check_memoryTime(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
                         print('==============================')
                     else:
                         pass
@@ -251,9 +311,7 @@ if __name__ == '__main__':
                 pass
                 # print("不存在Output_Path和Valgrind_File文件夹")
 
-    #判断 Output_Path是否为空
-    # if not os.path.exists(config['Output_Path']):
-    #     os.makedirs(config['Output_Path'])
+
 
     # 旧的设置项管理模块(不适用可以删除)
     # memoryInfo = MemorylogManager(deWeightTime,setupFilePath)
