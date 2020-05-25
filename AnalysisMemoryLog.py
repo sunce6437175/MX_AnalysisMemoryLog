@@ -56,7 +56,7 @@ def check_memoryTime(startTime,finishTime,readPath,writePath,exclPath):
     templine = 0
     tempNum = 0
     # 内存KPI 阀值
-    kPI = 910
+    kPI = 1024
 #     # 由字符串格式转化为日期格式的函数为: datetime.datetime.strptime()
     vSt = datetime.datetime.strptime(startTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
     vFt = datetime.datetime.strptime(finishTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
@@ -122,7 +122,7 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
     templine = 0
     tempNum = 0
     # 内存KPI 阀值
-    kPI = 910
+    kPI = 1024
     #取得开始结束以及最大值 
     with open(readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
         for line in read_file:
