@@ -55,14 +55,15 @@ def check_memoryTime(startTime,finishTime,readPath,writePath,exclPath):
     tempList = []
     templine = 0
     tempNum = 0
+    # 内存KPI 阀值
     kPI = 910
 #     # 由字符串格式转化为日期格式的函数为: datetime.datetime.strptime()
     vSt = datetime.datetime.strptime(startTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
     vFt = datetime.datetime.strptime(finishTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
-#     # print("开始时间：%s 和对应格式 %s"%(vSt,type(vSt)))
-#     # print("结束时间：%s 和对应格式 %s"%(vSt,type(vFt)))
+    print("开始时间：%s 和对应格式 %s"%(vSt,type(vSt)))
+    print("结束时间：%s 和对应格式 %s"%(vFt,type(vFt)))
 #     # 2.1）抽取开始和结束的时间戳，判断有效运行时间（单位：小时）
-    dayCtimes = ((vSt - vFt).seconds)/3600
+    dayCtimes = ((vSt - vFt).total_seconds())/3600
     print("本次有效时间-----共%.2f小时-----"%(dayCtimes))
 #     # 2.2）以及当内存超1024MB时所需时间。（超 kpi xxxxMB才需判断）
     with open(readPath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
@@ -120,10 +121,10 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
     tempList = []
     templine = 0
     tempNum = 0
-
+    # 内存KPI 阀值
+    kPI = 910
     #取得开始结束以及最大值 
     with open(readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
-
         for line in read_file:
             tempLienNum = tempLienNum + 1
             if startTime in line:
@@ -154,11 +155,17 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
         else:
             print("！输入参时间错误！")
     print("起始内存值：%s MB,结束内存值：%s MB,最大内存值：%s MB"%(tempList[0],tempList[-1],max(tempList)))
-
     startNum = '起始内存值: ' + str(tempList[0]) + ' MB'
     endNum = '结束内存值: ' + str(tempList[-1]) + ' MB'
     maxNum = '最大内存值: ' + str(max(tempList)) + ' MB'
-    # 
+    if maxNum >= kPI and endNum >= kPI:
+        print('判断峰值和结束已超1024MB')
+    elif maxNum < kPI and endNum :
+        pass
+    elif maxNum < KPI and :
+        pass
+    else:
+        print("本次内存峰值和结束值不存在超%sMB的测试场景"%(kPI))
 
     return(startNum,endNum,maxNum)
 
@@ -307,10 +314,10 @@ if __name__ == '__main__':
                         data_setupFileName = data_grade['setupFilePath']
                         data_setupFilePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),data_setupFileName).replace("\\",'/')
                         print('==============================')
-                        # print(data_name)
+                        print(data_name)
                         # print(data_startTime)
                         # print(data_endTime)
-                        # print(data_setupFilePath)
+                        print(data_setupFilePath)
                         startNum,endNum,maxNum = check_memorylog(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
                         validTime = check_memoryTime(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
                         print('==============================')
