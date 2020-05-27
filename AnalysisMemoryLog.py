@@ -60,8 +60,8 @@ def check_memoryTime(startTime,finishTime,readPath,writePath,exclPath):
 #     # 由字符串格式转化为日期格式的函数为: datetime.datetime.strptime()
     vSt = datetime.datetime.strptime(startTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
     vFt = datetime.datetime.strptime(finishTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
-    print("开始时间：%s 和对应格式 %s"%(vSt,type(vSt)))
-    print("结束时间：%s 和对应格式 %s"%(vFt,type(vFt)))
+    # print("开始时间：%s 和对应格式 %s"%(vSt,type(vSt)))
+    # print("结束时间：%s 和对应格式 %s"%(vFt,type(vFt)))
 #     # 2.1）抽取开始和结束的时间戳，判断有效运行时间（单位：小时）
     dayCtimes = ((vSt - vFt).total_seconds())/3600
     print("本次有效时间-----共%.2f小时-----"%(dayCtimes))
@@ -92,9 +92,9 @@ def check_memoryTime(startTime,finishTime,readPath,writePath,exclPath):
                             surpassHour = (a[1])
                             surpassStr = (surpassDay + ' '+ surpassHour).rsplit(']')
                             surpassTime = datetime.datetime.strptime((surpassStr[0]).replace("/",'-'),"%Y-%m-%d %H:%M:%S")
-                            print("开始超过%s的时间戳%s"%(kPI,a[0] + ' ' +a[1]))
+                            print("开始超过 %sMB 的时间戳为 %s"%(kPI,a[0] + ' ' +a[1]))
                             surpassTimeS = ((vSt - surpassTime).seconds)/3600
-                            print("导航放置%.2f小时到达 %s MB"%(surpassTimeS,kPI))
+                            print("导航放置 %.2f 小时到达 %s MB"%(surpassTimeS,kPI))
                             break
                         else:
                             pass
@@ -123,6 +123,11 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
     tempNum = 0
     # 内存KPI 阀值
     kPI = 1024
+    # 次峰值范围值
+    secondaryMaximum = 1000
+    # 开始与结束的落差 阀值
+    divide_The_Value = 300
+
     #取得开始结束以及最大值 
     with open(readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
         for line in read_file:
@@ -155,15 +160,23 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
         else:
             print("！输入参时间错误！")
     print("起始内存值：%s MB,结束内存值：%s MB,最大内存值：%s MB"%(tempList[0],tempList[-1],max(tempList)))
+    sNum = tempList[0]
+    eNum = tempList[-1]
+    mNum  = max(tempList)
     startNum = '起始内存值: ' + str(tempList[0]) + ' MB'
     endNum = '结束内存值: ' + str(tempList[-1]) + ' MB'
     maxNum = '最大内存值: ' + str(max(tempList)) + ' MB'
-    if maxNum >= kPI and endNum >= kPI:
-        print('判断峰值和结束已超1024MB')
-    elif maxNum < kPI and endNum :
+
+    # 实现场景1：判断峰值或结束值是已超1024MB
+    if mNum >= kPI and eNum >= kPI :
+        print("实现场景1：判断峰值和结束已超1024MB")
+    # 实现场景2： 未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间TBD??）
+    elif divide_The_Value <= mNum < kPI and divide_The_Value <= eNum  < kPI:
+        print("最大值小于1024MB，且结束值 %dMB "%(eNum))
+    # 实现场景3：内存一直未超1000MB,但开始与结束的落差值在xxx（divide_The_Value =300mb,后期改为可配置在json文件中）
+    elif mNum < secondaryMaximum and (int(eNum) - int(sNum)) >= divide_The_Value :
         pass
-    elif maxNum < KPI and :
-        pass
+    # 实现场景1：判断峰值或结束值是未超1024MB，且未长时间1000MB和且未超开始结束落差值
     else:
         print("本次内存峰值和结束值不存在超%sMB的测试场景"%(kPI))
 
@@ -313,14 +326,14 @@ if __name__ == '__main__':
                         data_endTime = data_grade['endTime']
                         data_setupFileName = data_grade['setupFilePath']
                         data_setupFilePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),data_setupFileName).replace("\\",'/')
-                        print('==============================')
+                        print('==============================start==============================')
                         print(data_name)
                         # print(data_startTime)
                         # print(data_endTime)
                         print(data_setupFilePath)
                         startNum,endNum,maxNum = check_memorylog(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
                         validTime = check_memoryTime(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
-                        print('==============================')
+                        print('==============================end==============================')
                     else:
                         pass
                         # print("JSON文件设置项配置错误")
