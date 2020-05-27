@@ -59,7 +59,7 @@
 		"grade":{
 			"startTime":"2020/1/11 13:34:52",
 			"endTime":"2020/1/12 23:51:07",
-			"setupFilePath":"sop1.5_2020-01-11_13-34-44chao1024.log"
+			"setupFilePath":"Valgrind_File/sop1.5_2020-01-11_13-34-44chao1024.log"
 				}
 			},
 	"Output_Path":"CNS3MemoryNew.xls",
