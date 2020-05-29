@@ -25,28 +25,6 @@ setupFilePath = os.path.join(os.getcwd(),setupFileName).replace("\\",'/')
 # 最新批量json配置项地址获取(获取当前文件的绝对路径)
 configJsonPath = os.path.join(os.path.abspath(os.path.dirname(__file__)),configJsonName).replace("\\",'/')
 
-# 读取key和设置文档的类(不适用可以删除)
-class MemorylogManager():
-    def __init__(self,memoryKeyword,setupFilePath):
-        self.memoryKeyword = memoryKeyword
-        self.setupFilePath = setupFilePath
-
-# 读取setup设置项参数(不适用可以删除)
-def setup_Working_Directory(self):
-    with open(self.setupFilePath) as read_file:
-        for line in read_file:
-            args = line.strip().split(',')
-            startTime = args[0]
-            finishTime = args[1]
-            readFileName = args[2]
-            writeFileName = args[3]
-            exclFileName = args[4]
-            
-            readPath = os.path.join(os.getcwd(),readFileName).replace("\\",'/')
-            writePath = os.path.join(os.getcwd(),writeFileName).replace("\\",'/')
-            exclPath = os.path.join(os.getcwd(),exclFileName).replace("\\",'/')
-    return(startTime,finishTime,readPath,writeFileName,exclPath)
-
 #判断有效运行时间
 def check_memoryTime(startTime,finishTime,readPath,writePath,exclPath):
     startLineNum = 0
@@ -102,13 +80,6 @@ def check_memoryTime(startTime,finishTime,readPath,writePath,exclPath):
                         pass
                     tempNum = tempNum + 1
 
-                # for xKPI in range(len(tempList)):
-                #     if tempList[xKPI] >= kPI :
-                #         pass
-                #         # print("大于的num:%s"%(tempList[xKPI]))
-                #     else:
-                #         pass
-                #         # print("不存在大于%s的本次"%(kPI))      
         else:
             pass
     
@@ -125,8 +96,15 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
     kPI = 1024
     # 次峰值范围值
     secondaryMaximum = 1000
+    stempLienNum = 0
+    stempList = []
+    stempNum = 0
+    stempNumOneT = 0
+    stempNumi = 0
     # 开始与结束的落差 阀值
     divide_The_Value = 300
+
+    
 
     #取得开始结束以及最大值 
     with open(readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
@@ -149,6 +127,7 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
 
                 for xline in read_file:
                     xline = xline.strip('\n')
+ 
                     if tempNum >= startLineNum and tempNum < finishLineNum:
 
                         a = xline.split()
@@ -170,15 +149,72 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
     # 实现场景1：判断峰值或结束值是已超1024MB
     if mNum >= kPI and eNum >= kPI :
         print("实现场景1：判断峰值和结束已超1024MB")
-    # 实现场景2： 未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间TBD??）
-    elif divide_The_Value <= mNum < kPI and divide_The_Value <= eNum  < kPI:
-        print("最大值小于1024MB，且结束值 %dMB "%(eNum))
+        # 取出全部数据生成Excel sheet + 对其进行内存曲线图分析 
+        pass
+    # 实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥60s）
+    elif secondaryMaximum <= mNum < kPI or secondaryMaximum <= eNum < kPI :
+        print("实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥60s）")
+        # 加入容错判断
+        with open(readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
+            f = read_file.readlines()
+            print(len(f))
+            for i in range(len(f)):
+                with open(readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
+                    for line in read_file:
+                        stempLienNum = stempLienNum + 1
+
+                        if startTime in line:
+                            if deWeightTime in line:
+                                continue
+                            else:
+                                startLineNum = stempLienNum
+
+                        if finishTime in line:
+                            if "END" in line:
+                                continue
+                            else:
+                                finishLineNum = stempLienNum
+                        
+                    if startLineNum <= finishLineNum and finishLineNum > startLineNum:
+                        
+                        with open(readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
+                            
+                            for sline in read_file:
+                                sline = sline.strip('\n')
+                                if stempNum >= startLineNum and stempNum < finishLineNum:
+                                    sa = sline.split()
+                                    sb = sa[5]
+                                    stempNumOneT = int(sb[:-1])
+                                    # 判断范围在1000 - 1024之间的时间和信息   方法：不连续，用“1”来间隔
+                                    if stempNumOneT >= secondaryMaximum and stempNumOneT < kPI:
+                                        stempNumi = i
+                                        # stempList.append(count)
+                                        # print("大等于1000 行数%d"%(stempNumi))
+                                    else:
+                                        continue
+                                        # stempList.append(1)
+                                else:
+                                    pass
+                                stempNum = stempNum + 1
+                                
+                            # print("+++++++++++++++++++ S ++++++++++++++++++++")
+                            # print(stempList)
+                            # print("+++++++++++++++++++ E ++++++++++++++++++++")
+
+                    
+                    else:
+                        print("！输入参时间错误！")
+
+            #     i += 1
+            # print("i的行数",i)
     # 实现场景3：内存一直未超1000MB,但开始与结束的落差值在xxx（divide_The_Value =300mb,后期改为可配置在json文件中）
     elif mNum < secondaryMaximum and (int(eNum) - int(sNum)) >= divide_The_Value :
-        pass
-    # 实现场景1：判断峰值或结束值是未超1024MB，且未长时间1000MB和且未超开始结束落差值
+        print("实现场景3：内存一直未超1000MB,但开始与结束的落差值在%sMB"%(divide_The_Value))
+        # 取出存在落差的全部数据创新sheet,并创建柱状图
+
+    # 实现场景4：判断峰值或结束值是未超1024MB，且未长时间1000MB和且未超开始结束落差值
     else:
-        print("本次内存峰值和结束值不存在超%sMB的测试场景"%(kPI))
+        print("实现场景4：本次内存峰值和结束值不存在超%sMB的测试场景去"%(kPI))
 
     return(startNum,endNum,maxNum)
 
@@ -343,10 +379,6 @@ if __name__ == '__main__':
                 # print("不存在Output_Path和Valgrind_File文件夹")
 
 
-
-    # 旧的设置项管理模块(不适用可以删除)
-    # memoryInfo = MemorylogManager(deWeightTime,setupFilePath)
-    # startTime,finishTime,readPath,writeFileName,exclPath = setup_Working_Directory(memoryInfo)
 
     # excel表的方法分析类
     # get_data = ExcelData(exclPath,sheetname)
