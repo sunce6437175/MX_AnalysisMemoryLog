@@ -62,6 +62,15 @@
 			"setupFilePath":"Valgrind_File/sop1.5_2020-01-11_13-34-44chao1024.log"
 				}
 			},
+	"personne8":{
+		"name":"zhaotianjun",
+		"project":"SOP1",
+		"grade":{
+			"startTime":"2020/1/11 13:34:52",
+			"endTime":"2020/1/12 0:57:54",
+			"setupFilePath":"Valgrind_File/sop1_2020-12-11_13-34-44_1000-1024.log"
+				}
+			},
 	"Output_Path":"CNS3MemoryNew.xls",
 	"Valgrind_File":"Valgrind_File"
 }
