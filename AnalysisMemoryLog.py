@@ -79,7 +79,6 @@ def check_memoryTime(startTime,finishTime,readPath,writePath,exclPath):
                     else:
                         pass
                     tempNum = tempNum + 1
-
         else:
             pass
     
@@ -104,8 +103,6 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
     # 开始与结束的落差 阀值
     divide_The_Value = 300
 
-    
-
     #取得开始结束以及最大值 
     with open(readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
         for line in read_file:
@@ -127,7 +124,7 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
 
                 for xline in read_file:
                     xline = xline.strip('\n')
- 
+
                     if tempNum >= startLineNum and tempNum < finishLineNum:
 
                         a = xline.split()
@@ -151,62 +148,66 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
         print("实现场景1：判断峰值和结束已超1024MB")
         # 取出全部数据生成Excel sheet + 对其进行内存曲线图分析 
         pass
-    # 实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥60s）
+    # 实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥60s，后期改为可配置）
     elif secondaryMaximum <= mNum < kPI or secondaryMaximum <= eNum < kPI :
         print("实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥60s）")
         # 加入容错判断
         with open(readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
-            f = read_file.readlines()
-            print(len(f))
-            for i in range(len(f)):
-                with open(readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
-                    for line in read_file:
-                        stempLienNum = stempLienNum + 1
+            # f = read_file.readlines()
+            # print(len(f))
+            # for i in range(len(f)):
 
-                        if startTime in line:
-                            if deWeightTime in line:
-                                continue
-                            else:
-                                startLineNum = stempLienNum
+            for line in read_file:
+                stempLienNum = stempLienNum + 1
+                
+                if startTime in line:
+                    if deWeightTime in line:
+                        continue
+                    else:
+                        startLineNum = stempLienNum
 
-                        if finishTime in line:
-                            if "END" in line:
-                                continue
-                            else:
-                                finishLineNum = stempLienNum
-                        
-                    if startLineNum <= finishLineNum and finishLineNum > startLineNum:
-                        
-                        with open(readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
+                if finishTime in line:
+                    if "END" in line:
+                        continue
+                    else:
+                        finishLineNum = stempLienNum
+                
+                if startLineNum <= finishLineNum and finishLineNum > startLineNum:
+                    
+                    with open(readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
+                        i = 0
+                        for sline in read_file:
                             
-                            for sline in read_file:
-                                sline = sline.strip('\n')
-                                if stempNum >= startLineNum and stempNum < finishLineNum:
-                                    sa = sline.split()
-                                    sb = sa[5]
-                                    stempNumOneT = int(sb[:-1])
-                                    # 判断范围在1000 - 1024之间的时间和信息   方法：不连续，用“1”来间隔
-                                    if stempNumOneT >= secondaryMaximum and stempNumOneT < kPI:
-                                        stempNumi = i
-                                        # stempList.append(count)
-                                        # print("大等于1000 行数%d"%(stempNumi))
-                                    else:
-                                        continue
-                                        # stempList.append(1)
+                            sline = sline.strip('\n')
+                            if stempNum >= startLineNum and stempNum < finishLineNum:
+                                sa = sline.split()
+                                sb = sa[5]
+                                stempNumOneT = int(sb[:-1])
+                                # 判断范围在1000 - 1024之间的时间和信息   方法：不连续，用“1”来间隔
+                                if stempNumOneT >= secondaryMaximum and stempNumOneT < kPI:
+                                    print(stempNumOneT)
+                                    # stempNumi = i
+                                    # stempList.append(count)
+                                    print("大等于1000所在行： %s  的行数 = %d"%(sa,i+1))
                                 else:
                                     pass
-                                stempNum = stempNum + 1
-                                
-                            # print("+++++++++++++++++++ S ++++++++++++++++++++")
-                            # print(stempList)
-                            # print("+++++++++++++++++++ E ++++++++++++++++++++")
+                                    # stempList.append(1)
+                            else:
+                                pass
+                            stempNum = stempNum + 1
+                            i = i +1
+                            if i != finishLineNum :
+                                # print("i的内行数",i)
+                                continue
+                            elif i == finishLineNum + 1 :
+                                break
+                        # print("+++++++++++++++++++ S ++++++++++++++++++++")
+                        # print(stempList)
+                        # print("+++++++++++++++++++ E ++++++++++++++++++++")
+                    break
+                else:
+                    print("！输入参时间错误！")
 
-                    
-                    else:
-                        print("！输入参时间错误！")
-
-            #     i += 1
-            # print("i的行数",i)
     # 实现场景3：内存一直未超1000MB,但开始与结束的落差值在xxx（divide_The_Value =300mb,后期改为可配置在json文件中）
     elif mNum < secondaryMaximum and (int(eNum) - int(sNum)) >= divide_The_Value :
         print("实现场景3：内存一直未超1000MB,但开始与结束的落差值在%sMB"%(divide_The_Value))
