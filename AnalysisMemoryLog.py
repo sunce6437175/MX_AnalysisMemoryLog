@@ -102,6 +102,7 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
     stempNumi = 0
     # 开始与结束的落差 阀值
     divide_The_Value = 300
+    dtvList = []
 
     #取得开始结束以及最大值 
     with open(readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
@@ -153,9 +154,6 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
         print("实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥60s）")
         # 加入容错判断
         with open(readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
-            # f = read_file.readlines()
-            # print(len(f))
-            # for i in range(len(f)):
 
             for line in read_file:
                 stempLienNum = stempLienNum + 1
@@ -185,34 +183,57 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
                                 stempNumOneT = int(sb[:-1])
                                 # 判断范围在1000 - 1024之间的时间和信息   方法：不连续，用“1”来间隔
                                 if stempNumOneT >= secondaryMaximum and stempNumOneT < kPI:
-                                    print(stempNumOneT)
-                                    # stempNumi = i
-                                    # stempList.append(count)
-                                    print("大等于1000所在行： %s  的行数 = %d"%(sa,i+1))
+                                    # 加入所在目标行位置
+                                    sa.append(i+1)
+                                    stempList.append(sa)
+                                    print("1000<=X<1024 所在行位置： %s  的行数 = %d"%(sa,i+1))
+                                    
                                 else:
                                     pass
-                                    # stempList.append(1)
+                                    # print("不在1000<=X<1024范围内")
+
                             else:
-                                pass
+                                print("！输入参数错误！")
                             stempNum = stempNum + 1
                             i = i +1
                             if i != finishLineNum :
-                                # print("i的内行数",i)
                                 continue
                             elif i == finishLineNum + 1 :
                                 break
-                        # print("+++++++++++++++++++ S ++++++++++++++++++++")
-                        # print(stempList)
-                        # print("+++++++++++++++++++ E ++++++++++++++++++++")
+                        print("+++++++++++++++++++ S ++++++++++++++++++++")
+                        print(stempList)
+                        print(len(stempList))
+                        print("+++++++++++++++++++ E ++++++++++++++++++++")
                     break
                 else:
                     print("！输入参时间错误！")
 
     # 实现场景3：内存一直未超1000MB,但开始与结束的落差值在xxx（divide_The_Value =300mb,后期改为可配置在json文件中）
     elif mNum < secondaryMaximum and (int(eNum) - int(sNum)) >= divide_The_Value :
-        print("实现场景3：内存一直未超1000MB,但开始与结束的落差值在%sMB"%(divide_The_Value))
+        print("实现场景3：内存一直未超1000MB,但开始与结束的实际落差值在%sMB,已超过KPI: %s MB"%((int(eNum) - int(sNum)),divide_The_Value))
         # 取出存在落差的全部数据创新sheet,并创建柱状图
+        with open(readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
+            for line in read_file:
+                stempLienNum = stempLienNum + 1
+                
+                if startTime in line:
+                    if deWeightTime in line:
+                        continue
+                    else:
+                        startLineNum = stempLienNum
 
+                if finishTime in line:
+                    if "END" in line:
+                        continue
+                    else:
+                        finishLineNum = stempLienNum
+            if startLineNum <= finishLineNum and finishLineNum > startLineNum:
+                with open(readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
+
+                    for xline in read_file:
+                        xline = xline.strip('\n')
+                        dtvList.append(xline)
+            print(dtvList)
     # 实现场景4：判断峰值或结束值是未超1024MB，且未长时间1000MB和且未超开始结束落差值
     else:
         print("实现场景4：本次内存峰值和结束值不存在超%sMB的测试场景去"%(kPI))
