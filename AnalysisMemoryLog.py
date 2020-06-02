@@ -8,9 +8,7 @@ import xlrd
 from xlrd import xldate_as_tuple
 import datetime
 import json
-import requests
-import codecs
-from bs4 import BeautifulSoup
+import pandas as pd
 
 # 搜索内存关键字
 deWeightTime = "top -m | grep MXNavi"
@@ -93,6 +91,9 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
     tempNum = 0
     # 内存KPI 阀值
     kPI = 1024
+    # 获取超KPI的数据列表
+    KPIList = []
+
     # 次峰值范围值
     secondaryMaximum = 1000
     stempLienNum = 0
@@ -148,7 +149,30 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
     if mNum >= kPI and eNum >= kPI :
         print("实现场景1：判断峰值和结束已超1024MB")
         # 取出全部数据生成Excel sheet + 对其进行内存曲线图分析 
-        pass
+        with open(readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
+            for line in read_file:
+                stempLienNum = stempLienNum + 1
+                
+                if startTime in line:
+                    if deWeightTime in line:
+                        continue
+                    else:
+                        startLineNum = stempLienNum
+
+                if finishTime in line:
+                    if "END" in line:
+                        continue
+                    else:
+                        finishLineNum = stempLienNum
+                
+                if startLineNum <= finishLineNum and finishLineNum > startLineNum:
+                    with open(readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
+                        for kline in read_file:
+                            kline = kline.strip('\n').split()
+                            KPIList.__add__(kline)
+                else:
+                    print("起始结束行位置错误")
+
     # 实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥60s，后期改为可配置）
     elif secondaryMaximum <= mNum < kPI or secondaryMaximum <= eNum < kPI :
         print("实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥60s）")
@@ -186,7 +210,7 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
                                     # 加入所在目标行位置
                                     sa.append(i+1)
                                     stempList.append(sa)
-                                    print("1000<=X<1024 所在行位置： %s  的行数 = %d"%(sa,i+1))
+                                    # print("1000<=X<1024 所在行位置： %s  的行数 = %d"%(sa,i+1))
                                     
                                 else:
                                     pass
@@ -200,10 +224,10 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
                                 continue
                             elif i == finishLineNum + 1 :
                                 break
-                        print("+++++++++++++++++++ S ++++++++++++++++++++")
-                        print(stempList)
-                        print(len(stempList))
-                        print("+++++++++++++++++++ E ++++++++++++++++++++")
+                        # print("+++++++++++++++++++ S ++++++++++++++++++++")
+                        # print(stempList)
+                        # print(len(stempList))
+                        # print("+++++++++++++++++++ E ++++++++++++++++++++")
                     break
                 else:
                     print("！输入参时间错误！")
@@ -233,12 +257,12 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
                     for xline in read_file:
                         xline = xline.strip('\n')
                         dtvList.append(xline)
-            print(dtvList)
+            # print(dtvList)
     # 实现场景4：判断峰值或结束值是未超1024MB，且未长时间1000MB和且未超开始结束落差值
     else:
         print("实现场景4：本次内存峰值和结束值不存在超%sMB的测试场景去"%(kPI))
 
-    return(startNum,endNum,maxNum)
+    return(startNum,endNum,maxNum,KPIList)
 
 # 读取excel的类
 class ExcelData():
@@ -327,46 +351,38 @@ class ExcelWrite(object):
                 self.write_value(cells[i], values[i])
         else:
             print("传参错误,单元格：%i个,写入值：%i个" % (len(cells), len(values)))
-
-# UCS-2 little endian方法A(不适用可以删除)
-def parseFileA(filepath):
-    linelist = []
-    try:
-        with open(filepath,'r') as fp:
-            temp = 0
-            encoding = 'utf-16-le'
-            with codecs.open(filepath, 'r', encoding) as fp2:
-                soup = BeautifulSoup(fp2)
-                # print(soup)
-                print(type(soup))
-                linelist.append(soup)
-                # print(linelist)
-        return(linelist)
-    except Exception:
-        print('[ERROR]')
-# UCS-2 little endian方法B(不适用可以删除)
-def parseFileB(filepath):
-    try:
-        lineList = [] # 存放每一行的内容
-        with open(filepath, 'r') as fp:
-            line = fp.read()
-            print(line)
-            if line.startswith('\xff\xfe'):
-                encoding = 'utf-16-le'
-                fp2 = codecs.open(filepath, 'r', encoding)
-                lineList = fp2.readlines()
-                fp2.stream.close()
-        for i in lineList: # 打印每一行
-            print(i)
-    except Exception:
-        print('[ERROR]')
+# 将字典列表导出到excel文件中：带验证
+def export_excel(export):
+    #将字典列表转换为DataFrame
+    pf = pd.DataFrame(list(export))
+    #指定字段顺序
+    order = ['road_name','bus_plate','timeline','road_type','site']
+    pf = pf[order]
+    #将列名替换为中文
+    columns_map = {
+        'road_name':'路线',
+        'bus_plate':'车牌',
+        'timeline':'时间',
+        'road_type':'方向',
+        'site':'站点'
+    }
+    pf.rename(columns = columns_map,inplace = True)
+    #指定生成的Excel表格名称
+    file_path = pd.ExcelWriter('name.xlsx')
+    #替换空单元格
+    pf.fillna(' ',inplace = True)
+    #输出
+    pf.to_excel(file_path,encoding = 'utf-8',index = False)
+    #保存表格
+    file_path.save()
 
 
 if __name__ == '__main__':
     # sheetname = "Sheet1"
     with open(configJsonPath) as c:
         config = json.load(c)
-
+        writeFileName = config['Output_Path']
+        print(writeFileName)
     #判断 Output_Path 文件夹是否存在
         if os.path.exists(config['Output_Path']):
             print("Output_Path 已存在")
@@ -376,6 +392,7 @@ if __name__ == '__main__':
         for d in (config.keys()):
             if d != "Output_Path" and d != "Valgrind_File" :
                 data_perison = config.get(d)
+                print(d)
                 for item in data_perison.keys():
                     if item == "grade":
                         data_grade = data_perison["grade"]
@@ -385,11 +402,11 @@ if __name__ == '__main__':
                         data_setupFileName = data_grade['setupFilePath']
                         data_setupFilePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),data_setupFileName).replace("\\",'/')
                         print('==============================start==============================')
-                        print(data_name)
+                        # print(data_name)
                         # print(data_startTime)
                         # print(data_endTime)
-                        print(data_setupFilePath)
-                        startNum,endNum,maxNum = check_memorylog(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
+                        # print(data_setupFilePath)
+                        startNum,endNum,maxNum,kpiList = check_memorylog(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
                         validTime = check_memoryTime(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
                         print('==============================end==============================')
                     else:
@@ -401,15 +418,17 @@ if __name__ == '__main__':
                 # print("不存在Output_Path和Valgrind_File文件夹")
 
 
-
     # excel表的方法分析类
     # get_data = ExcelData(exclPath,sheetname)
     # datarows = get_data.readRowValues()
     # excel表的写入类
-    # start = ExcelWrite(writeFileName)
-    # cells1 = [(0,0),(1,1),(2,2)]
-    # values1 = (startNum,endNum,maxNum)
-    # start.write_values(cells1,values1)
+    start = ExcelWrite(writeFileName)
+    cells1 = [(0,0),(1,1),(2,2)]
+    values1 = (startNum,endNum,maxNum)
+    start.write_values(cells1,values1)
+
+    # export_excel(tables)
+    # https://blog.csdn.net/weixin_39082390/article/details/97375083?utm_medium=distribute.pc_relevant.none-task-blog-baidujs-1
 
 
 
