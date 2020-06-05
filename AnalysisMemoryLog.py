@@ -33,15 +33,15 @@ def check_memoryTime(startTime,finishTime,readPath,writePath,exclPath):
     tempNum = 0
     # 内存KPI 阀值
     kPI = 1024
-#     # 由字符串格式转化为日期格式的函数为: datetime.datetime.strptime()
+    # 由字符串格式转化为日期格式的函数为: datetime.datetime.strptime()
     vSt = datetime.datetime.strptime(startTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
     vFt = datetime.datetime.strptime(finishTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
     # print("开始时间：%s 和对应格式 %s"%(vSt,type(vSt)))
     # print("结束时间：%s 和对应格式 %s"%(vFt,type(vFt)))
-#     # 2.1）抽取开始和结束的时间戳，判断有效运行时间（单位：小时）
+    # 2.1）抽取开始和结束的时间戳，判断有效运行时间（单位：小时）
     dayCtimes = ((vSt - vFt).total_seconds())/3600
     print("本次有效时间-----共%.2f小时-----"%(dayCtimes))
-#     # 2.2）以及当内存超1024MB时所需时间。（超 kpi xxxxMB才需判断）
+    # 2.2）以及当内存超1024MB时所需时间。（超 kpi xxxxMB才需判断）
     with open(readPath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
         for line in read_file:
             tempLienNum = tempLienNum + 1
@@ -83,16 +83,15 @@ def check_memoryTime(startTime,finishTime,readPath,writePath,exclPath):
     return(dayCtimes)
 # 判断内存开始和结束以及最大值
 def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
-    startLineNum = 0
-    finishLineNum = 0
+    startLineNum = 0     # 开始行数
+    finishLineNum = 0    # 结束行数
     tempLienNum = 0
     tempList = []
     templine = 0
     tempNum = 0
-    # 内存KPI 阀值
-    kPI = 1024
-    # 获取超KPI的数据列表
-    KPIList = []
+    
+    kPI = 1024           # 内存KPI 阀值
+    KPIList = []         # 获取超KPI的数据列表
 
     # 次峰值范围值
     secondaryMaximum = 1000
@@ -105,7 +104,7 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
     divide_The_Value = 300
     dtvList = []
 
-    #取得开始结束以及最大值 
+    #取得开始结束值以及最大值 
     with open(readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
         for line in read_file:
             tempLienNum = tempLienNum + 1
@@ -148,7 +147,7 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
     # 实现场景1：判断峰值或结束值是已超1024MB
     if mNum >= kPI and eNum >= kPI :
         print("实现场景1：判断峰值和结束已超1024MB")
-        # 取出全部数据生成Excel sheet + 对其进行内存曲线图分析 
+        # 取出全部数据生成Excel sheet 
         with open(readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
             for line in read_file:
                 stempLienNum = stempLienNum + 1
@@ -165,14 +164,21 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
                     else:
                         finishLineNum = stempLienNum
                 
-                if startLineNum <= finishLineNum and finishLineNum > startLineNum:
-                    with open(readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
-                        for kline in read_file:
+            if startLineNum <= finishLineNum and finishLineNum > startLineNum:
+                with open(readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
+                    for kline in read_file:
+                        if "BEGIN" in kline:
+                            continue
+                        elif "END" in kline:
+                            continue
+                        else:
                             kline = kline.strip('\n').split()
-                            KPIList.__add__(kline)
-                else:
-                    print("起始结束行位置错误")
-
+                            KPIList.append(kline)
+            else:
+                print("起始结束行位置错误")
+        # print("=============")
+        # print(KPIList)
+        # print("=============")
     # 实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥60s，后期改为可配置）
     elif secondaryMaximum <= mNum < kPI or secondaryMaximum <= eNum < kPI :
         print("实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥60s）")
@@ -352,30 +358,29 @@ class ExcelWrite(object):
         else:
             print("传参错误,单元格：%i个,写入值：%i个" % (len(cells), len(values)))
 # 将字典列表导出到excel文件中：带验证
-def export_excel(export):
+def export_excel(export,nameXlsx):
     #将字典列表转换为DataFrame
     pf = pd.DataFrame(list(export))
     #指定字段顺序
-    order = ['road_name','bus_plate','timeline','road_type','site']
-    pf = pf[order]
-    #将列名替换为中文
-    columns_map = {
-        'road_name':'路线',
-        'bus_plate':'车牌',
-        'timeline':'时间',
-        'road_type':'方向',
-        'site':'站点'
-    }
-    pf.rename(columns = columns_map,inplace = True)
+    # order = ['mem_name','bus_plate','timeline','road_type','site']
+    # pf = pf[order]
+    # #将列名替换为中文
+    # columns_map = {
+    #     'mem_name':'时间戳',
+    #     'bus_plate':'车牌',
+    #     'timeline':'时间',
+    #     'road_type':'方向',
+    #     'site':'站点'
+    # }
+    # pf.rename(columns = columns_map,inplace = True)
     #指定生成的Excel表格名称
-    file_path = pd.ExcelWriter('name.xlsx')
+    file_path = pd.ExcelWriter(nameXlsx)
     #替换空单元格
     pf.fillna(' ',inplace = True)
     #输出
     pf.to_excel(file_path,encoding = 'utf-8',index = False)
     #保存表格
     file_path.save()
-
 
 if __name__ == '__main__':
     # sheetname = "Sheet1"
@@ -422,12 +427,12 @@ if __name__ == '__main__':
     # get_data = ExcelData(exclPath,sheetname)
     # datarows = get_data.readRowValues()
     # excel表的写入类
-    start = ExcelWrite(writeFileName)
-    cells1 = [(0,0),(1,1),(2,2)]
-    values1 = (startNum,endNum,maxNum)
-    start.write_values(cells1,values1)
+    # start = ExcelWrite(writeFileName)
+    # cells1 = [(0,0),(1,1),(2,2)]
+    # values1 = (startNum,endNum,maxNum)
+    # start.write_values(cells1,values1)
 
-    # export_excel(tables)
+        export_excel(kpiList,writeFileName)
     # https://blog.csdn.net/weixin_39082390/article/details/97375083?utm_medium=distribute.pc_relevant.none-task-blog-baidujs-1
 
 
