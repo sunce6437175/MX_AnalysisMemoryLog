@@ -10,18 +10,21 @@ import datetime
 import json
 import pandas as pd
 
-# 搜索内存关键字
-deWeightTime = "top -m | grep MXNavi"
-# 原有setup配置项
-setupFileName = "SETUP.txt"
-# 最新批量json配置项
-configJsonName = "config/config.json"
 
-# 原有setup配置项地址获取(当前工作路径)
-setupFilePath = os.path.join(os.getcwd(),setupFileName).replace("\\",'/')
 
-# 最新批量json配置项地址获取(获取当前文件的绝对路径)
-configJsonPath = os.path.join(os.path.abspath(os.path.dirname(__file__)),configJsonName).replace("\\",'/')
+
+class KeyType:
+    # 搜索内存关键字
+    deWeightTime = "top -m | grep MXNavi"
+    # 原有setup配置项(当前工作路径不采用,可考虑删除)
+    setupFileName = "SETUP.txt"
+    # 最新批量json配置项
+    configJsonName = "config/config.json"
+    # 原有setup配置项地址获取(当前工作路径不采用,可考虑删除)
+    setupFilePath = os.path.join(os.getcwd(),setupFileName).replace("\\",'/')
+    # 最新批量json配置项地址获取(获取当前文件的绝对路径)
+    configJsonPath = os.path.join(os.path.abspath(os.path.dirname(__file__)),configJsonName).replace("\\",'/')
+
 
 #判断有效运行时间
 def check_memoryTime(startTime,finishTime,readPath,writePath,exclPath):
@@ -46,7 +49,7 @@ def check_memoryTime(startTime,finishTime,readPath,writePath,exclPath):
         for line in read_file:
             tempLienNum = tempLienNum + 1
             if startTime in line:
-                if deWeightTime in line:
+                if KeyType.deWeightTime in line:
                     continue
                 else:
                     startLineNum = tempLienNum
@@ -109,7 +112,7 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
         for line in read_file:
             tempLienNum = tempLienNum + 1
             if startTime in line:
-                if deWeightTime in line:
+                if KeyType.deWeightTime in line:
                     continue
                 else:
                     startLineNum = tempLienNum
@@ -153,7 +156,7 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
                 stempLienNum = stempLienNum + 1
                 
                 if startTime in line:
-                    if deWeightTime in line:
+                    if KeyType.deWeightTime in line:
                         continue
                     else:
                         startLineNum = stempLienNum
@@ -189,7 +192,7 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
                 stempLienNum = stempLienNum + 1
                 
                 if startTime in line:
-                    if deWeightTime in line:
+                    if KeyType.deWeightTime in line:
                         continue
                     else:
                         startLineNum = stempLienNum
@@ -247,7 +250,7 @@ def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
                 stempLienNum = stempLienNum + 1
                 
                 if startTime in line:
-                    if deWeightTime in line:
+                    if KeyType.deWeightTime in line:
                         continue
                     else:
                         startLineNum = stempLienNum
@@ -384,7 +387,7 @@ def export_excel(export,nameXlsx):
 
 if __name__ == '__main__':
     # sheetname = "Sheet1"
-    with open(configJsonPath) as c:
+    with open(KeyType.configJsonPath) as c:
         config = json.load(c)
         writeFileName = config['Output_Path']
         print(writeFileName)
@@ -407,10 +410,10 @@ if __name__ == '__main__':
                         data_setupFileName = data_grade['setupFilePath']
                         data_setupFilePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),data_setupFileName).replace("\\",'/')
                         print('==============================start==============================')
-                        # print(data_name)
-                        # print(data_startTime)
-                        # print(data_endTime)
-                        # print(data_setupFilePath)
+                        print(data_name)
+                        print(data_startTime)
+                        print(data_endTime)
+                        print(data_setupFilePath)
                         startNum,endNum,maxNum,kpiList = check_memorylog(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
                         validTime = check_memoryTime(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
                         print('==============================end==============================')
