@@ -11,8 +11,6 @@ import json
 import pandas as pd
 
 
-
-
 class KeyType:
     # 搜索内存关键字
     deWeightTime = "top -m | grep MXNavi"
@@ -25,254 +23,248 @@ class KeyType:
     # 最新批量json配置项地址获取(获取当前文件的绝对路径)
     configJsonPath = os.path.join(os.path.abspath(os.path.dirname(__file__)),configJsonName).replace("\\",'/')
 
+class Check_Amemory(object):
+    def __init__(self,startTime,finishTime,readPath,writePath,exclPath):
+        self.startTime = startTime
+        self.finishTime = finishTime
+        self.readPath = readPath
+        self.writePath = writePath
+        self.exclPath = exclPath
 
-#判断有效运行时间
-def check_memoryTime(startTime,finishTime,readPath,writePath,exclPath):
-    startLineNum = 0
-    finishLineNum = 0
-    tempLienNum = 0
-    tempList = []
-    templine = 0
-    tempNum = 0
-    # 内存KPI 阀值
-    kPI = 1024
-    # 由字符串格式转化为日期格式的函数为: datetime.datetime.strptime()
-    vSt = datetime.datetime.strptime(startTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
-    vFt = datetime.datetime.strptime(finishTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
-    # print("开始时间：%s 和对应格式 %s"%(vSt,type(vSt)))
-    # print("结束时间：%s 和对应格式 %s"%(vFt,type(vFt)))
-    # 2.1）抽取开始和结束的时间戳，判断有效运行时间（单位：小时）
-    dayCtimes = ((vSt - vFt).total_seconds())/3600
-    print("本次有效时间-----共%.2f小时-----"%(dayCtimes))
-    # 2.2）以及当内存超1024MB时所需时间。（超 kpi xxxxMB才需判断）
-    with open(readPath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
-        for line in read_file:
-            tempLienNum = tempLienNum + 1
-            if startTime in line:
-                if KeyType.deWeightTime in line:
-                    continue
-                else:
-                    startLineNum = tempLienNum
-            if finishTime in line:
-                if "END" in line:
-                    continue
-                else:
-                    finishLineNum = tempLienNum
-        if startLineNum <= finishLineNum and finishLineNum > startLineNum:
-            with open(readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
-                for xline in read_file:
-                    xline = xline.strip('\n')
-                    if tempNum >= startLineNum and tempNum < finishLineNum:
-                        a = xline.split()
-                        b = a[5]
-                        # tempList.append(int(b[:-1]))
-                        if int(b[:-1]) == kPI :
-                            surpassDay = str((a[0]).strip('['))
-                            surpassHour = (a[1])
-                            surpassStr = (surpassDay + ' '+ surpassHour).rsplit(']')
-                            surpassTime = datetime.datetime.strptime((surpassStr[0]).replace("/",'-'),"%Y-%m-%d %H:%M:%S")
-                            print("开始超过 %sMB 的时间戳为 %s"%(kPI,a[0] + ' ' +a[1]))
-                            surpassTimeS = ((vSt - surpassTime).seconds)/3600
-                            print("导航放置 %.2f 小时到达 %s MB"%(surpassTimeS,kPI))
-                            break
-                        else:
-                            pass
-                    else:
-                        pass
-                    tempNum = tempNum + 1
-        else:
-            pass
-    
-    return(dayCtimes)
-# 判断内存开始和结束以及最大值
-def check_memorylog(startTime,finishTime,readPath,writePath,exclPath):
-    startLineNum = 0     # 开始行数
-    finishLineNum = 0    # 结束行数
-    tempLienNum = 0
-    tempList = []
-    templine = 0
-    tempNum = 0
-    
-    kPI = 1024           # 内存KPI 阀值
-    KPIList = []         # 获取超KPI的数据列表
-
-    # 次峰值范围值
-    secondaryMaximum = 1000
-    stempLienNum = 0
-    stempList = []
-    stempNum = 0
-    stempNumOneT = 0
-    stempNumi = 0
-    # 开始与结束的落差 阀值
-    divide_The_Value = 300
-    dtvList = []
-
-    #取得开始结束值以及最大值 
-    with open(readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
-        for line in read_file:
-            tempLienNum = tempLienNum + 1
-            if startTime in line:
-                if KeyType.deWeightTime in line:
-                    continue
-                else:
-                    startLineNum = tempLienNum
-
-            if finishTime in line:
-                if "END" in line:
-                    continue
-                else:
-                    finishLineNum = tempLienNum
-
-        if startLineNum <= finishLineNum and finishLineNum > startLineNum:
-            with open(readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
-
-                for xline in read_file:
-                    xline = xline.strip('\n')
-
-                    if tempNum >= startLineNum and tempNum < finishLineNum:
-
-                        a = xline.split()
-                        b = a[5]
-                        tempList.append(int(b[:-1]))
-                    else:
-                        pass
-                    tempNum = tempNum + 1
-        else:
-            print("！输入参时间错误！")
-    print("起始内存值：%s MB,结束内存值：%s MB,最大内存值：%s MB"%(tempList[0],tempList[-1],max(tempList)))
-    sNum = tempList[0]
-    eNum = tempList[-1]
-    mNum  = max(tempList)
-    startNum = '起始内存值: ' + str(tempList[0]) + ' MB'
-    endNum = '结束内存值: ' + str(tempList[-1]) + ' MB'
-    maxNum = '最大内存值: ' + str(max(tempList)) + ' MB'
-
-    # 实现场景1：判断峰值或结束值是已超1024MB
-    if mNum >= kPI and eNum >= kPI :
-        print("实现场景1：判断峰值和结束已超1024MB")
-        # 取出全部数据生成Excel sheet 
-        with open(readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
+    #判断有效运行时间
+    def check_memoryTime(self):
+        startLineNum = 0
+        finishLineNum = 0
+        tempLienNum = 0
+        tempList = []
+        templine = 0
+        tempNum = 0
+        # 内存KPI 阀值
+        kPI = 1024
+        # 由字符串格式转化为日期格式的函数为: datetime.datetime.strptime()
+        vSt = datetime.datetime.strptime(self.startTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
+        vFt = datetime.datetime.strptime(self.finishTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
+        # print("开始时间：%s 和对应格式 %s"%(vSt,type(vSt)))
+        # print("结束时间：%s 和对应格式 %s"%(vFt,type(vFt)))
+        # 2.1）抽取开始和结束的时间戳，判断有效运行时间（单位：小时）
+        dayCtimes = ((vSt - vFt).total_seconds())/3600
+        print("本次有效时间-----共%.2f小时-----"%(dayCtimes))
+        # 2.2）以及当内存超1024MB时所需时间。（超 kpi xxxxMB才需判断）
+        with open(self.readPath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
             for line in read_file:
-                stempLienNum = stempLienNum + 1
-                
-                if startTime in line:
+                tempLienNum = tempLienNum + 1
+                if self.startTime in line:
                     if KeyType.deWeightTime in line:
                         continue
                     else:
-                        startLineNum = stempLienNum
-
-                if finishTime in line:
+                        startLineNum = tempLienNum
+                if self.finishTime in line:
                     if "END" in line:
                         continue
                     else:
-                        finishLineNum = stempLienNum
-                
+                        finishLineNum = tempLienNum
             if startLineNum <= finishLineNum and finishLineNum > startLineNum:
-                with open(readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
-                    for kline in read_file:
-                        if "BEGIN" in kline:
-                            continue
-                        elif "END" in kline:
-                            continue
-                        else:
-                            kline = kline.strip('\n').split()
-                            KPIList.append(kline)
-            else:
-                print("起始结束行位置错误")
-        # print("=============")
-        # print(KPIList)
-        # print("=============")
-    # 实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥60s，后期改为可配置）
-    elif secondaryMaximum <= mNum < kPI or secondaryMaximum <= eNum < kPI :
-        print("实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥60s）")
-        # 加入容错判断
-        with open(readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
-
-            for line in read_file:
-                stempLienNum = stempLienNum + 1
-                
-                if startTime in line:
-                    if KeyType.deWeightTime in line:
-                        continue
-                    else:
-                        startLineNum = stempLienNum
-
-                if finishTime in line:
-                    if "END" in line:
-                        continue
-                    else:
-                        finishLineNum = stempLienNum
-                
-                if startLineNum <= finishLineNum and finishLineNum > startLineNum:
-                    
-                    with open(readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
-                        i = 0
-                        for sline in read_file:
-                            
-                            sline = sline.strip('\n')
-                            if stempNum >= startLineNum and stempNum < finishLineNum:
-                                sa = sline.split()
-                                sb = sa[5]
-                                stempNumOneT = int(sb[:-1])
-                                # 判断范围在1000 - 1024之间的时间和信息   方法：不连续，用“1”来间隔
-                                if stempNumOneT >= secondaryMaximum and stempNumOneT < kPI:
-                                    # 加入所在目标行位置
-                                    sa.append(i+1)
-                                    stempList.append(sa)
-                                    # print("1000<=X<1024 所在行位置： %s  的行数 = %d"%(sa,i+1))
-                                    
-                                else:
-                                    pass
-                                    # print("不在1000<=X<1024范围内")
-
-                            else:
-                                print("！输入参数错误！")
-                            stempNum = stempNum + 1
-                            i = i +1
-                            if i != finishLineNum :
-                                continue
-                            elif i == finishLineNum + 1 :
-                                break
-                        # print("+++++++++++++++++++ S ++++++++++++++++++++")
-                        # print(stempList)
-                        # print(len(stempList))
-                        # print("+++++++++++++++++++ E ++++++++++++++++++++")
-                    break
-                else:
-                    print("！输入参时间错误！")
-
-    # 实现场景3：内存一直未超1000MB,但开始与结束的落差值在xxx（divide_The_Value =300mb,后期改为可配置在json文件中）
-    elif mNum < secondaryMaximum and (int(eNum) - int(sNum)) >= divide_The_Value :
-        print("实现场景3：内存一直未超1000MB,但开始与结束的实际落差值在%sMB,已超过KPI: %s MB"%((int(eNum) - int(sNum)),divide_The_Value))
-        # 取出存在落差的全部数据创新sheet,并创建柱状图
-        with open(readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
-            for line in read_file:
-                stempLienNum = stempLienNum + 1
-                
-                if startTime in line:
-                    if KeyType.deWeightTime in line:
-                        continue
-                    else:
-                        startLineNum = stempLienNum
-
-                if finishTime in line:
-                    if "END" in line:
-                        continue
-                    else:
-                        finishLineNum = stempLienNum
-            if startLineNum <= finishLineNum and finishLineNum > startLineNum:
-                with open(readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
-
+                with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
                     for xline in read_file:
                         xline = xline.strip('\n')
-                        dtvList.append(xline)
-            # print(dtvList)
-    # 实现场景4：判断峰值或结束值是未超1024MB，且未长时间1000MB和且未超开始结束落差值
-    else:
-        print("实现场景4：本次内存峰值和结束值不存在超%sMB的测试场景去"%(kPI))
+                        if tempNum >= startLineNum and tempNum < finishLineNum:
+                            a = xline.split()
+                            b = a[5]
+                            # tempList.append(int(b[:-1]))
+                            if int(b[:-1]) == kPI :
+                                surpassDay = str((a[0]).strip('['))
+                                surpassHour = (a[1])
+                                surpassStr = (surpassDay + ' '+ surpassHour).rsplit(']')
+                                surpassTime = datetime.datetime.strptime((surpassStr[0]).replace("/",'-'),"%Y-%m-%d %H:%M:%S")
+                                print("开始超过 %sMB 的时间戳为 %s"%(kPI,a[0] + ' ' +a[1]))
+                                surpassTimeS = ((vSt - surpassTime).seconds)/3600
+                                print("导航放置 %.2f 小时到达 %s MB"%(surpassTimeS,kPI))
+                                break
+                            else:
+                                pass
+                        else:
+                            pass
+                        tempNum = tempNum + 1
+            else:
+                pass
+        
+        # return(dayCtimes)
+    # 判断内存开始和结束以及最大值
+    def check_memorylog(self):
+        startLineNum = 0     # 开始行数
+        finishLineNum = 0    # 结束行数
+        tempLienNum = 0
+        tempList = []
+        templine = 0
+        tempNum = 0
+        
+        kPI = 1024           # 内存KPI 阀值
+        KPIList = []         # 获取超KPI的数据列表
 
-    return(startNum,endNum,maxNum,KPIList)
+        secondaryMaximum = 1000      # 次峰值范围值
+        stempLienNum = 0
+        stempList = []
+        stempNum = 0
+        stempNumOneT = 0
+        stempNumi = 0
+        
+        divide_The_Value = 300     # 开始与结束的落差 阀值
+        dtvList = []
 
+        #取得开始结束值以及最大值 
+        with open(self.readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
+            for line in read_file:
+                tempLienNum = tempLienNum + 1
+                if self.startTime in line:
+                    if KeyType.deWeightTime in line:
+                        continue
+                    else:
+                        startLineNum = tempLienNum
+
+                if self.finishTime in line:
+                    if "END" in line:
+                        continue
+                    else:
+                        finishLineNum = tempLienNum
+
+            if startLineNum <= finishLineNum and finishLineNum > startLineNum:
+                with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
+                    for xline in read_file:
+                        xline = xline.strip('\n')
+                        if tempNum >= startLineNum and tempNum < finishLineNum:
+                            a = xline.split()
+                            b = a[5]
+                            tempList.append(int(b[:-1]))
+                        else:
+                            pass
+                        tempNum = tempNum + 1
+            else:
+                print("！输入参时间错误！")
+        print("起始内存值：%s MB,结束内存值：%s MB,最大内存值：%s MB"%(tempList[0],tempList[-1],max(tempList)))
+        sNum = tempList[0]
+        eNum = tempList[-1]
+        mNum  = max(tempList)
+        startNum = '起始内存值: ' + str(tempList[0]) + ' MB'
+        endNum = '结束内存值: ' + str(tempList[-1]) + ' MB'
+        maxNum = '最大内存值: ' + str(max(tempList)) + ' MB'
+
+        # 实现场景1：判断峰值或结束值是已超1024MB
+        if mNum >= kPI and eNum >= kPI :
+            print("实现场景1：判断峰值和结束已超1024MB")
+            # 取出全部数据生成Excel sheet 
+            with open(self.readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
+                for line in read_file:
+                    stempLienNum = stempLienNum + 1
+                    if self.startTime in line:
+                        if KeyType.deWeightTime in line:
+                            continue
+                        else:
+                            startLineNum = stempLienNum
+
+                    if self.finishTime in line:
+                        if "END" in line:
+                            continue
+                        else:
+                            finishLineNum = stempLienNum
+                    
+                if startLineNum <= finishLineNum and finishLineNum > startLineNum:
+                    with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
+                        for kline in read_file:
+                            if "BEGIN" in kline:
+                                continue
+                            elif "END" in kline:
+                                continue
+                            else:
+                                kline = kline.strip('\n').split()
+                                KPIList.append(kline)
+                else:
+                    print("起始结束行位置错误")
+
+        # 实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥60s，后期改为可配置）
+        elif secondaryMaximum <= mNum < kPI or secondaryMaximum <= eNum < kPI :
+            print("实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥60s）")
+            # 加入容错判断
+            with open(self.readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
+
+                for line in read_file:
+                    stempLienNum = stempLienNum + 1
+                    if self.startTime in line:
+                        if KeyType.deWeightTime in line:
+                            continue
+                        else:
+                            startLineNum = stempLienNum
+
+                    if self.finishTime in line:
+                        if "END" in line:
+                            continue
+                        else:
+                            finishLineNum = stempLienNum
+                    
+                    if startLineNum <= finishLineNum and finishLineNum > startLineNum:
+                        
+                        with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
+                            i = 0
+                            for sline in read_file:
+                                sline = sline.strip('\n')
+                                if stempNum >= startLineNum and stempNum < finishLineNum:
+                                    sa = sline.split()
+                                    sb = sa[5]
+                                    stempNumOneT = int(sb[:-1])
+                                    # 判断范围在1000 - 1024之间的时间和信息   方法：不连续，用“1”来间隔
+                                    if stempNumOneT >= secondaryMaximum and stempNumOneT < kPI:
+                                        # 加入所在目标行位置
+                                        sa.append(i+1)
+                                        stempList.append(sa)
+                                        # print("1000<=X<1024 所在行位置： %s  的行数 = %d"%(sa,i+1))
+                                    else:
+                                        pass
+                                        # print("不在1000<=X<1024范围内")
+
+                                else:
+                                    print("！输入参数错误！")
+                                stempNum = stempNum + 1
+                                i = i +1
+                                if i != finishLineNum :
+                                    continue
+                                elif i == finishLineNum + 1 :
+                                    break
+
+                        break
+                    else:
+                        print("！输入参时间错误！")
+
+        # 实现场景3：内存一直未超1000MB,但开始与结束的落差值在xxx（divide_The_Value =300mb,后期改为可配置在json文件中）
+        elif mNum < secondaryMaximum and (int(eNum) - int(sNum)) >= divide_The_Value :
+            print("实现场景3：内存一直未超1000MB,但开始与结束的实际落差值在%sMB,已超过KPI: %s MB"%((int(eNum) - int(sNum)),divide_The_Value))
+            # 取出存在落差的全部数据创新sheet,并创建柱状图
+            with open(self.readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
+                for line in read_file:
+                    stempLienNum = stempLienNum + 1
+                    
+                    if self.startTime in line:
+                        if KeyType.deWeightTime in line:
+                            continue
+                        else:
+                            startLineNum = stempLienNum
+
+                    if self.finishTime in line:
+                        if "END" in line:
+                            continue
+                        else:
+                            finishLineNum = stempLienNum
+                if startLineNum <= finishLineNum and finishLineNum > startLineNum:
+                    with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
+
+                        for xline in read_file:
+                            xline = xline.strip('\n')
+                            dtvList.append(xline)
+                # print(dtvList)
+        # 实现场景4：判断峰值或结束值是未超1024MB，且未长时间1000MB和且未超开始结束落差值
+        else:
+            print("实现场景4：本次内存峰值和结束值不存在超%sMB的测试场景去"%(kPI))
+
+        # return(startNum,endNum,maxNum,KPIList)
+    return(dayCtimes,startNum,endNum,maxNum,KPIList)
 # 读取excel的类
 class ExcelData():
     # 初始化方法
@@ -360,7 +352,7 @@ class ExcelWrite(object):
                 self.write_value(cells[i], values[i])
         else:
             print("传参错误,单元格：%i个,写入值：%i个" % (len(cells), len(values)))
-# 将字典列表导出到excel文件中：带验证
+# 将字典列表导出到excel文件中：待验证
 def export_excel(export,nameXlsx):
     #将字典列表转换为DataFrame
     pf = pd.DataFrame(list(export))
@@ -414,8 +406,10 @@ if __name__ == '__main__':
                         print(data_startTime)
                         print(data_endTime)
                         print(data_setupFilePath)
-                        startNum,endNum,maxNum,kpiList = check_memorylog(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
-                        validTime = check_memoryTime(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
+                        dayCtimes,startNum,endNum,maxNum,kpiList = Check_Amemory(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
+                        # a = Check_Amemory(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
+                        # validTime = check_memoryTime(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
+                        # Check_Amemory.
                         print('==============================end==============================')
                     else:
                         pass
