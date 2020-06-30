@@ -23,7 +23,14 @@ class KeyType:
     # 最新批量json配置项地址获取(获取当前文件的绝对路径)
     configJsonPath = os.path.join(os.path.abspath(os.path.dirname(__file__)),configJsonName).replace("\\",'/')
 
-class Check_Amemory(object):
+class CheckAmemory(object):
+    startLineNum = 0    # 开始行数
+    finishLineNum = 0   # 结束行数
+    # tempLienNum = 0     # 标注行数
+    # templine = 0
+    
+ 
+    kPI = 1024          # 内存KPI 阀值
     def __init__(self,startTime,finishTime,readPath,writePath,exclPath):
         self.startTime = startTime
         self.finishTime = finishTime
@@ -33,14 +40,10 @@ class Check_Amemory(object):
 
     #判断有效运行时间
     def check_memoryTime(self):
-        startLineNum = 0
-        finishLineNum = 0
-        tempLienNum = 0
-        tempList = []
-        templine = 0
-        tempNum = 0
-        # 内存KPI 阀值
-        kPI = 1024
+        tempList = []       # 标注列表
+        tempLienNum = 0     # 标注行数
+        tempNum = 0         # 对比行数
+    
         # 由字符串格式转化为日期格式的函数为: datetime.datetime.strptime()
         vSt = datetime.datetime.strptime(self.startTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
         vFt = datetime.datetime.strptime(self.finishTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
@@ -71,14 +74,14 @@ class Check_Amemory(object):
                             a = xline.split()
                             b = a[5]
                             # tempList.append(int(b[:-1]))
-                            if int(b[:-1]) == kPI :
+                            if int(b[:-1]) == CheckAmemory.kPI :
                                 surpassDay = str((a[0]).strip('['))
                                 surpassHour = (a[1])
                                 surpassStr = (surpassDay + ' '+ surpassHour).rsplit(']')
                                 surpassTime = datetime.datetime.strptime((surpassStr[0]).replace("/",'-'),"%Y-%m-%d %H:%M:%S")
-                                print("开始超过 %sMB 的时间戳为 %s"%(kPI,a[0] + ' ' +a[1]))
+                                print("开始超过 %sMB 的时间戳为 %s"%(CheckAmemory.kPI,a[0] + ' ' +a[1]))
                                 surpassTimeS = ((vSt - surpassTime).seconds)/3600
-                                print("导航放置 %.2f 小时到达 %s MB"%(surpassTimeS,kPI))
+                                print("导航放置 %.2f 小时到达 %s MB"%(surpassTimeS,CheckAmemory.kPI))
                                 break
                             else:
                                 pass
@@ -88,17 +91,15 @@ class Check_Amemory(object):
             else:
                 pass
         
-        # return(dayCtimes)
+        return(dayCtimes)
     # 判断内存开始和结束以及最大值
     def check_memorylog(self):
-        startLineNum = 0     # 开始行数
-        finishLineNum = 0    # 结束行数
+        # startLineNum = 0     # 开始行数
+        # finishLineNum = 0    # 结束行数
         tempLienNum = 0
         tempList = []
-        templine = 0
+        # templine = 0
         tempNum = 0
-        
-        kPI = 1024           # 内存KPI 阀值
         KPIList = []         # 获取超KPI的数据列表
 
         secondaryMaximum = 1000      # 次峰值范围值
@@ -149,7 +150,7 @@ class Check_Amemory(object):
         maxNum = '最大内存值: ' + str(max(tempList)) + ' MB'
 
         # 实现场景1：判断峰值或结束值是已超1024MB
-        if mNum >= kPI and eNum >= kPI :
+        if mNum >= CheckAmemory.kPI and eNum >= CheckAmemory.kPI :
             print("实现场景1：判断峰值和结束已超1024MB")
             # 取出全部数据生成Excel sheet 
             with open(self.readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
@@ -181,11 +182,10 @@ class Check_Amemory(object):
                     print("起始结束行位置错误")
 
         # 实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥60s，后期改为可配置）
-        elif secondaryMaximum <= mNum < kPI or secondaryMaximum <= eNum < kPI :
+        elif secondaryMaximum <= mNum < CheckAmemory.kPI or secondaryMaximum <= eNum < CheckAmemory.kPI :
             print("实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥60s）")
             # 加入容错判断
             with open(self.readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
-
                 for line in read_file:
                     stempLienNum = stempLienNum + 1
                     if self.startTime in line:
@@ -211,7 +211,7 @@ class Check_Amemory(object):
                                     sb = sa[5]
                                     stempNumOneT = int(sb[:-1])
                                     # 判断范围在1000 - 1024之间的时间和信息   方法：不连续，用“1”来间隔
-                                    if stempNumOneT >= secondaryMaximum and stempNumOneT < kPI:
+                                    if stempNumOneT >= secondaryMaximum and stempNumOneT < CheckAmemory.kPI:
                                         # 加入所在目标行位置
                                         sa.append(i+1)
                                         stempList.append(sa)
@@ -261,10 +261,10 @@ class Check_Amemory(object):
                 # print(dtvList)
         # 实现场景4：判断峰值或结束值是未超1024MB，且未长时间1000MB和且未超开始结束落差值
         else:
-            print("实现场景4：本次内存峰值和结束值不存在超%sMB的测试场景去"%(kPI))
+            print("实现场景4：本次内存峰值和结束值不存在超%sMB的测试场景去"%(CheckAmemory.kPI))
 
-        # return(startNum,endNum,maxNum,KPIList)
-    return(dayCtimes,startNum,endNum,maxNum,KPIList)
+        return(startNum,endNum,maxNum,KPIList)
+
 # 读取excel的类
 class ExcelData():
     # 初始化方法
@@ -406,7 +406,9 @@ if __name__ == '__main__':
                         print(data_startTime)
                         print(data_endTime)
                         print(data_setupFilePath)
-                        dayCtimes,startNum,endNum,maxNum,kpiList = Check_Amemory(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
+                        persion = CheckAmemory(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
+                        persion.check_memoryTime()
+                        persion.check_memorylog()
                         # a = Check_Amemory(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
                         # validTime = check_memoryTime(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
                         # Check_Amemory.
@@ -429,7 +431,7 @@ if __name__ == '__main__':
     # values1 = (startNum,endNum,maxNum)
     # start.write_values(cells1,values1)
 
-        export_excel(kpiList,writeFileName)
+        # export_excel(kpiList,writeFileName)
     # https://blog.csdn.net/weixin_39082390/article/details/97375083?utm_medium=distribute.pc_relevant.none-task-blog-baidujs-1
 
 
