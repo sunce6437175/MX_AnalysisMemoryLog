@@ -22,15 +22,14 @@ class KeyType:
     setupFilePath = os.path.join(os.getcwd(),setupFileName).replace("\\",'/')
     # 最新批量json配置项地址获取(获取当前文件的绝对路径)
     configJsonPath = os.path.join(os.path.abspath(os.path.dirname(__file__)),configJsonName).replace("\\",'/')
-
-class CheckAmemory(object):
+class Animalm(object):
     startLineNum = 0    # 开始行数
     finishLineNum = 0   # 结束行数
-    # tempLienNum = 0     # 标注行数
-    # templine = 0
-    
  
     kPI = 1024          # 内存KPI 阀值
+    secondaryMaximum = 1000      # 次峰值范围值
+    divide_The_Value = 300     # 开始与结束的落差 阀值
+
     def __init__(self,startTime,finishTime,readPath,writePath,exclPath):
         self.startTime = startTime
         self.finishTime = finishTime
@@ -38,21 +37,11 @@ class CheckAmemory(object):
         self.writePath = writePath
         self.exclPath = exclPath
 
-    #判断有效运行时间
-    def check_memoryTime(self):
+    def check_tmpLine(self):
         tempList = []       # 标注列表
         tempLienNum = 0     # 标注行数
         tempNum = 0         # 对比行数
     
-        # 由字符串格式转化为日期格式的函数为: datetime.datetime.strptime()
-        vSt = datetime.datetime.strptime(self.startTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
-        vFt = datetime.datetime.strptime(self.finishTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
-        # print("开始时间：%s 和对应格式 %s"%(vSt,type(vSt)))
-        # print("结束时间：%s 和对应格式 %s"%(vFt,type(vFt)))
-        # 2.1）抽取开始和结束的时间戳，判断有效运行时间（单位：小时）
-        dayCtimes = ((vSt - vFt).total_seconds())/3600
-        print("本次有效时间-----共%.2f小时-----"%(dayCtimes))
-        # 2.2）以及当内存超1024MB时所需时间。（超 kpi xxxxMB才需判断）
         with open(self.readPath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
             for line in read_file:
                 tempLienNum = tempLienNum + 1
@@ -66,50 +55,135 @@ class CheckAmemory(object):
                         continue
                     else:
                         finishLineNum = tempLienNum
-            if startLineNum <= finishLineNum and finishLineNum > startLineNum:
-                with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
-                    for xline in read_file:
-                        xline = xline.strip('\n')
-                        if tempNum >= startLineNum and tempNum < finishLineNum:
-                            a = xline.split()
-                            b = a[5]
-                            # tempList.append(int(b[:-1]))
-                            if int(b[:-1]) == CheckAmemory.kPI :
-                                surpassDay = str((a[0]).strip('['))
-                                surpassHour = (a[1])
-                                surpassStr = (surpassDay + ' '+ surpassHour).rsplit(']')
-                                surpassTime = datetime.datetime.strptime((surpassStr[0]).replace("/",'-'),"%Y-%m-%d %H:%M:%S")
-                                print("开始超过 %sMB 的时间戳为 %s"%(CheckAmemory.kPI,a[0] + ' ' +a[1]))
-                                surpassTimeS = ((vSt - surpassTime).seconds)/3600
-                                print("导航放置 %.2f 小时到达 %s MB"%(surpassTimeS,CheckAmemory.kPI))
-                                break
-                            else:
-                                pass
+            # print('^^^^^^^^^^^^^^^^^^^^^^^^^')
+            # print(startLineNum,finishLineNum)
+        return(startLineNum,finishLineNum)
+
+class CheckAmemory(Animalm):
+
+    # startLineNum = 0    # 开始行数
+    # finishLineNum = 0   # 结束行数
+    # # tempLienNum = 0     # 标注行数
+    # # templine = 0
+    
+    # kPI = 1024          # 内存KPI 阀值
+    # secondaryMaximum = 1000      # 次峰值范围值
+    # divide_The_Value = 300     # 开始与结束的落差 阀值
+
+    # def __init__(self,startTime,finishTime,readPath,writePath,exclPath):
+    #     self.startTime = startTime
+    #     self.finishTime = finishTime
+    #     self.readPath = readPath
+    #     self.writePath = writePath
+    #     self.exclPath = exclPath
+    def __init__(self,startTime,finishTime,readPath,writePath,exclPath,type='虚构类'):
+        self.type = type
+        Animalm.__init__(self,startTime,finishTime,readPath,writePath,exclPath)
+        a = Animalm.check_tmpLine(self)
+        # print(a)
+
+    # def check_tmpLine(self):
+    #     print('****************************')
+    #     print(Animalm.startLineNum,Animalm.finishLineNum)
+    #判断有效运行时间
+    def check_memoryTime(self):
+        tempList = []       # 标注列表
+        tempLienNum = 0     # 标注行数
+        tempNum = 0         # 对比行数
+    
+        # 由字符串格式转化为日期格式的函数为: datetime.datetime.strptime()
+        vSt = datetime.datetime.strptime(self.startTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
+        vFt = datetime.datetime.strptime(self.finishTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
+        # print("开始时间：%s 和对应格式 %s"%(vSt,type(vSt)))
+        # print("结束时间：%s 和对应格式 %s"%(vFt,type(vFt)))
+        # 2.1）抽取开始和结束的时间戳，判断有效运行时间（单位：小时）
+        # dayCtimes = ((vSt - vFt).total_seconds())/3600
+        dayCtimes = ((vFt - vSt).total_seconds())/3600
+        print("本次有效时间-----共%.2f小时-----"%(dayCtimes))
+        # 2.2）以及当内存超1024MB时所需时间。（超 kpi xxxxMB才需判断）
+        # with open(self.readPath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
+        #     for line in read_file:
+        #         tempLienNum = tempLienNum + 1
+        #         if self.startTime in line:
+        #             if KeyType.deWeightTime in line:
+        #                 continue
+        #             else:
+        #                 startLineNum = tempLienNum
+        #         if self.finishTime in line:
+        #             if "END" in line:
+        #                 continue
+        #             else:
+        #                 finishLineNum = tempLienNum
+        print(Animalm.check_tmpLine(self)[0],Animalm.check_tmpLine(self)[1])
+        if Animalm.check_tmpLine(self)[0] <= Animalm.check_tmpLine(self)[1] and Animalm.check_tmpLine(self)[1] > Animalm.check_tmpLine(self)[0]:
+            with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
+                for xline in read_file:
+                    xline = xline.strip('\n')
+                    if tempNum >= Animalm.check_tmpLine(self)[0] and tempNum < Animalm.check_tmpLine(self)[1]:
+                        a = xline.split()
+                        b = a[5]
+                        # tempList.append(int(b[:-1]))
+                        if int(b[:-1]) == CheckAmemory.kPI :
+                            surpassDay = str((a[0]).strip('['))
+                            surpassHour = (a[1])
+                            surpassStr = (surpassDay + ' '+ surpassHour).rsplit(']')
+                            surpassTime = datetime.datetime.strptime((surpassStr[0]).replace("/",'-'),"%Y-%m-%d %H:%M:%S")
+                            print("开始超过 %sMB 的时间戳为 %s"%(CheckAmemory.kPI,a[0] + ' ' +a[1]))
+                            surpassTimeS = ((vSt - surpassTime).seconds)/3600
+                            print("导航放置 %.2f 小时到达 %s MB"%(surpassTimeS,CheckAmemory.kPI))
+                            break
                         else:
                             pass
-                        tempNum = tempNum + 1
-            else:
-                pass
-        
+                    else:
+                        pass
+                    tempNum = tempNum + 1
+        else:
+            pass
+    
         return(dayCtimes)
+
+        # if startLineNum <= finishLineNum and finishLineNum > startLineNum:
+        #     with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
+        #         for xline in read_file:
+        #             xline = xline.strip('\n')
+        #             if tempNum >= startLineNum and tempNum < finishLineNum:
+        #                 a = xline.split()
+        #                 b = a[5]
+        #                 # tempList.append(int(b[:-1]))
+        #                 if int(b[:-1]) == CheckAmemory.kPI :
+        #                     surpassDay = str((a[0]).strip('['))
+        #                     surpassHour = (a[1])
+        #                     surpassStr = (surpassDay + ' '+ surpassHour).rsplit(']')
+        #                     surpassTime = datetime.datetime.strptime((surpassStr[0]).replace("/",'-'),"%Y-%m-%d %H:%M:%S")
+        #                     print("开始超过 %sMB 的时间戳为 %s"%(CheckAmemory.kPI,a[0] + ' ' +a[1]))
+        #                     surpassTimeS = ((vSt - surpassTime).seconds)/3600
+        #                     print("导航放置 %.2f 小时到达 %s MB"%(surpassTimeS,CheckAmemory.kPI))
+        #                     break
+        #                 else:
+        #                     pass
+        #             else:
+        #                 pass
+        #             tempNum = tempNum + 1
+        # else:
+        #     pass
+    
+        # return(dayCtimes)
     # 判断内存开始和结束以及最大值
     def check_memorylog(self):
-        # startLineNum = 0     # 开始行数
-        # finishLineNum = 0    # 结束行数
-        tempLienNum = 0
-        tempList = []
+
+        tempLienNum = 0        # 标注行数
+        tempList = []          # 标注列表
         # templine = 0
-        tempNum = 0
+        tempNum = 0            # 对比行数
         KPIList = []         # 获取超KPI的数据列表
 
-        secondaryMaximum = 1000      # 次峰值范围值
         stempLienNum = 0
         stempList = []
         stempNum = 0
         stempNumOneT = 0
         stempNumi = 0
         
-        divide_The_Value = 300     # 开始与结束的落差 阀值
+        
         dtvList = []
 
         #取得开始结束值以及最大值 
@@ -182,7 +256,7 @@ class CheckAmemory(object):
                     print("起始结束行位置错误")
 
         # 实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥60s，后期改为可配置）
-        elif secondaryMaximum <= mNum < CheckAmemory.kPI or secondaryMaximum <= eNum < CheckAmemory.kPI :
+        elif CheckAmemory.secondaryMaximum <= mNum < CheckAmemory.kPI or CheckAmemory.secondaryMaximum <= eNum < CheckAmemory.kPI :
             print("实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥60s）")
             # 加入容错判断
             with open(self.readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
@@ -211,7 +285,7 @@ class CheckAmemory(object):
                                     sb = sa[5]
                                     stempNumOneT = int(sb[:-1])
                                     # 判断范围在1000 - 1024之间的时间和信息   方法：不连续，用“1”来间隔
-                                    if stempNumOneT >= secondaryMaximum and stempNumOneT < CheckAmemory.kPI:
+                                    if stempNumOneT >= CheckAmemory.secondaryMaximum and stempNumOneT < CheckAmemory.kPI:
                                         # 加入所在目标行位置
                                         sa.append(i+1)
                                         stempList.append(sa)
@@ -234,8 +308,8 @@ class CheckAmemory(object):
                         print("！输入参时间错误！")
 
         # 实现场景3：内存一直未超1000MB,但开始与结束的落差值在xxx（divide_The_Value =300mb,后期改为可配置在json文件中）
-        elif mNum < secondaryMaximum and (int(eNum) - int(sNum)) >= divide_The_Value :
-            print("实现场景3：内存一直未超1000MB,但开始与结束的实际落差值在%sMB,已超过KPI: %s MB"%((int(eNum) - int(sNum)),divide_The_Value))
+        elif mNum < CheckAmemory.secondaryMaximum and (int(eNum) - int(sNum)) >= CheckAmemory.divide_The_Value :
+            print("实现场景3：内存一直未超1000MB,但开始与结束的实际落差值在%sMB,已超过KPI: %s MB"%((int(eNum) - int(sNum)),CheckAmemory.divide_The_Value))
             # 取出存在落差的全部数据创新sheet,并创建柱状图
             with open(self.readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
                 for line in read_file:
@@ -406,9 +480,13 @@ if __name__ == '__main__':
                         print(data_startTime)
                         print(data_endTime)
                         print(data_setupFilePath)
+                        ap = Animalm(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
+                        # ap.check_tmpLine()
+                        # persion = CheckAmemory(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
                         persion = CheckAmemory(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
+                        persion.check_tmpLine()
                         persion.check_memoryTime()
-                        persion.check_memorylog()
+                        # persion.check_memorylog()
                         # a = Check_Amemory(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
                         # validTime = check_memoryTime(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
                         # Check_Amemory.
