@@ -10,6 +10,7 @@ import datetime
 import json
 import pandas as pd
 import time
+import xlsxwriter
 
 class KeyType:
     # 搜索内存关键字
@@ -31,7 +32,8 @@ class Animalm(object):
     divide_The_Value = 300      # 开始与结束的落差 阀值
     divide_The_Time = 60      # 保持时间≥60s 阈值
 
-    def __init__(self,startTime,finishTime,readPath,writePath,exclPath):
+    def __init__(self,name,startTime,finishTime,readPath,writePath,exclPath):
+        self.name = name
         self.startTime = startTime
         self.finishTime = finishTime
         self.readPath = readPath
@@ -75,9 +77,9 @@ class CheckAmemory(Animalm):
     #     self.readPath = readPath
     #     self.writePath = writePath
     #     self.exclPath = exclPath
-    def __init__(self,startTime,finishTime,readPath,writePath,exclPath,type='虚构类'):
+    def __init__(self,name,startTime,finishTime,readPath,writePath,exclPath,type='虚构类'):
         self.type = type
-        Animalm.__init__(self,startTime,finishTime,readPath,writePath,exclPath)
+        Animalm.__init__(self,name,startTime,finishTime,readPath,writePath,exclPath)
         # a = Animalm.check_tmpLine(self)
         # print(a)
 
@@ -231,6 +233,7 @@ class CheckAmemory(Animalm):
         # 实现场景1：判断峰值或结束值是已超1024MB
         if mNum >= CheckAmemory.kPI and eNum >= CheckAmemory.kPI :
             print("实现场景1：判断峰值和结束已超1024MB")
+            self.write_to_excel()
             # 取出全部数据生成Excel sheet 
             # with open(self.readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
             #     for line in read_file:
@@ -303,8 +306,6 @@ class CheckAmemory(Animalm):
                                 # print("1000<=X<1024 所在行位置： %s  的行数 = %d"%(sa,i+1))
                                 b = b+1
                                 
-
-
                             else:
                                 pass
                                 # print("不在1000<=X<1024范围内")
@@ -331,6 +332,7 @@ class CheckAmemory(Animalm):
         # 实现场景3：内存一直未超1000MB,但开始与结束的落差值在xxx（divide_The_Value =300mb,后期改为可配置在json文件中）
         elif mNum < CheckAmemory.secondaryMaximum and (int(eNum) - int(sNum)) >= CheckAmemory.divide_The_Value :
             print("实现场景3：内存一直未超1000MB,但开始与结束的实际落差值在%sMB,已超过KPI: %s MB"%((int(eNum) - int(sNum)),CheckAmemory.divide_The_Value))
+            self.write_to_excel()
             # 取出存在落差的全部数据创新sheet,并创建柱状图
             # with open(self.readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
             #     for line in read_file:
@@ -360,6 +362,49 @@ class CheckAmemory(Animalm):
 
         return(startNum,endNum,maxNum,KPIList)
 
+    def write_to_excel(self):
+        alist = [] 
+        blist = []
+        flist = []
+        count = 0
+        headings = ['年月','小时','内存值']
+        print('--write_to_excel--')
+        # rb = xlrd.open_workbook(self.writePath)
+        workbook = xlsxwriter.Workbook(self.writePath)
+        workbooksheet = workbook.add_worksheet(self.name)
+        workbooksheet.write_row('A1',headings)
+        # workbooksheet.write_row()
+        with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
+            for kline in read_file:
+
+                if "BEGIN" in kline:
+                    continue
+                elif "END" in kline:
+                    continue
+                elif len(kline) == 85 :
+                    kline = kline.strip('\n').split()
+                    alist.append(kline[0])
+                    # print(kline[0])
+                    blist.append(kline[1])
+                    # print(kline[1])
+                    if kline[5] != None:
+                        # print(kline[5])
+                        flist.append(kline[5])
+                    else:
+                        break
+                else:
+                    pass
+                    # print("数据不满足11位")
+        workbooksheet.write_column('A2',alist)
+        workbooksheet.write_column('B2',blist) 
+        workbooksheet.write_column('C2',flist) 
+
+            # print(alist,blist,flist,end='')
+        workbook.close() 
+        
+
+
+        
 # 读取excel的类
 class ExcelData():
     # 初始化方法
@@ -447,30 +492,9 @@ class ExcelWrite(object):
                 self.write_value(cells[i], values[i])
         else:
             print("传参错误,单元格：%i个,写入值：%i个" % (len(cells), len(values)))
-# 将字典列表导出到excel文件中：待验证
-def export_excel(export,nameXlsx):
-    #将字典列表转换为DataFrame
-    pf = pd.DataFrame(list(export))
-    #指定字段顺序
-    # order = ['mem_name','bus_plate','timeline','road_type','site']
-    # pf = pf[order]
-    # #将列名替换为中文
-    # columns_map = {
-    #     'mem_name':'时间戳',
-    #     'bus_plate':'车牌',
-    #     'timeline':'时间',
-    #     'road_type':'方向',
-    #     'site':'站点'
-    # }
-    # pf.rename(columns = columns_map,inplace = True)
-    #指定生成的Excel表格名称
-    file_path = pd.ExcelWriter(nameXlsx)
-    #替换空单元格
-    pf.fillna(' ',inplace = True)
-    #输出
-    pf.to_excel(file_path,encoding = 'utf-8',index = False)
-    #保存表格
-    file_path.save()
+    # 将字典列表导出到excel文件中：待验证
+
+
 
 
 
@@ -503,10 +527,10 @@ if __name__ == '__main__':
                         print(data_startTime)
                         print(data_endTime)
                         print(data_setupFilePath)
-                        ap = Animalm(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
+                        ap = Animalm(data_name,data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
                         # ap.check_tmpLine()
                         # persion = CheckAmemory(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
-                        persion = CheckAmemory(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
+                        persion = CheckAmemory(data_name,data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
                         persion.check_tmpLine()
                         persion.check_memoryTime()
                         persion.check_memorylog()
@@ -516,8 +540,7 @@ if __name__ == '__main__':
                         print('==============================end==============================')
                     else:
                         pass
-                        # print("JSON文件设置项配置错误")
-                    
+                        # print("JSON文件设置项配置错误")  
             else:
                 pass
                 # print("不存在Output_Path和Valgrind_File文件夹")
