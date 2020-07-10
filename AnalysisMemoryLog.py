@@ -62,26 +62,9 @@ class Animalm(object):
 
 class CheckAmemory(Animalm):
 
-    # startLineNum = 0    # 开始行数
-    # finishLineNum = 0   # 结束行数
-    # # tempLienNum = 0     # 标注行数
-    # # templine = 0
-    
-    # kPI = 1024          # 内存KPI 阀值
-    # secondaryMaximum = 1000      # 次峰值范围值
-    # divide_The_Value = 300     # 开始与结束的落差 阀值
-
-    # def __init__(self,startTime,finishTime,readPath,writePath,exclPath):
-    #     self.startTime = startTime
-    #     self.finishTime = finishTime
-    #     self.readPath = readPath
-    #     self.writePath = writePath
-    #     self.exclPath = exclPath
     def __init__(self,name,startTime,finishTime,readPath,writePath,exclPath,type='虚构类'):
         self.type = type
         Animalm.__init__(self,name,startTime,finishTime,readPath,writePath,exclPath)
-        # a = Animalm.check_tmpLine(self)
-        # print(a)
 
     #判断有效运行时间
     def check_memoryTime(self):
@@ -99,20 +82,6 @@ class CheckAmemory(Animalm):
         dayCtimes = ((vFt - vSt).total_seconds())/3600
         print("本次有效时间-----共%.2f小时-----"%(dayCtimes))
         # 2.2）以及当内存超1024MB时所需时间。（超 kpi xxxxMB才需判断）
-        # with open(self.readPath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
-        #     for line in read_file:
-        #         tempLienNum = tempLienNum + 1
-        #         if self.startTime in line:
-        #             if KeyType.deWeightTime in line:
-        #                 continue
-        #             else:
-        #                 startLineNum = tempLienNum
-        #         if self.finishTime in line:
-        #             if "END" in line:
-        #                 continue
-        #             else:
-        #                 finishLineNum = tempLienNum
-        # 此方法已修改性能慢的原因已解决
         stmpLine = Animalm.check_tmpLine(self)[0]      # 调用父类check_tmpLine方法并赋值起始行，防止初始化循环调用
         ftmpLine = Animalm.check_tmpLine(self)[1]      # 调用父类check_tmpLine方法并赋值结束行，防止初始化循环调用
         # print(Animalm.check_tmpLine(self)[0],Animalm.check_tmpLine(self)[1])
@@ -146,35 +115,8 @@ class CheckAmemory(Animalm):
             pass
         return(dayCtimes)
 
-        # if startLineNum <= finishLineNum and finishLineNum > startLineNum:
-        #     with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
-        #         for xline in read_file:
-        #             xline = xline.strip('\n')
-        #             if tempNum >= startLineNum and tempNum < finishLineNum:
-        #                 a = xline.split()
-        #                 b = a[5]
-        #                 # tempList.append(int(b[:-1]))
-        #                 if int(b[:-1]) == CheckAmemory.kPI :
-        #                     surpassDay = str((a[0]).strip('['))
-        #                     surpassHour = (a[1])
-        #                     surpassStr = (surpassDay + ' '+ surpassHour).rsplit(']')
-        #                     surpassTime = datetime.datetime.strptime((surpassStr[0]).replace("/",'-'),"%Y-%m-%d %H:%M:%S")
-        #                     print("开始超过 %sMB 的时间戳为 %s"%(CheckAmemory.kPI,a[0] + ' ' +a[1]))
-        #                     surpassTimeS = ((vSt - surpassTime).seconds)/3600
-        #                     print("导航放置 %.2f 小时到达 %s MB"%(surpassTimeS,CheckAmemory.kPI))
-        #                     break
-        #                 else:
-        #                     pass
-        #             else:
-        #                 pass
-        #             tempNum = tempNum + 1
-        # else:
-        #     pass
-    
-        # return(dayCtimes)
     # 判断内存开始和结束以及最大值
     def check_memorylog(self):
-
         tempLienNum = 0        # 标注行数
         tempList = []          # 标注列表
         # templine = 0
@@ -190,25 +132,9 @@ class CheckAmemory(Animalm):
         dtvList = []
 
         #取得开始结束值以及最大值 
-        # with open(self.readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
-        #     for line in read_file:
-        #         tempLienNum = tempLienNum + 1
-        #         if self.startTime in line:
-        #             if KeyType.deWeightTime in line:
-        #                 continue
-        #             else:
-        #                 startLineNum = tempLienNum
-
-        #         if self.finishTime in line:
-        #             if "END" in line:
-        #                 continue
-        #             else:
-        #                 finishLineNum = tempLienNum
         stmpLine = Animalm.check_tmpLine(self)[0]      # 调用父类check_tmpLine方法并赋值起始行，防止初始化循环调用
         ftmpLine = Animalm.check_tmpLine(self)[1]      # 调用父类check_tmpLine方法并赋值结束行，防止初始化循环调用
-        # print('++++++++++++++++++++++++++')
         # print(Animalm.check_tmpLine(self)[0],Animalm.check_tmpLine(self)[1])
-        # print('++++++++++++++++++++++++++')
         if stmpLine <= ftmpLine and ftmpLine > stmpLine:
             with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
                 for xline in read_file:
@@ -234,22 +160,7 @@ class CheckAmemory(Animalm):
         if mNum >= CheckAmemory.kPI and eNum >= CheckAmemory.kPI :
             print("实现场景1：判断峰值和结束已超1024MB")
             self.write_to_excel()
-            # 取出全部数据生成Excel sheet 
-            # with open(self.readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
-            #     for line in read_file:
-            #         stempLienNum = stempLienNum + 1
-            #         if self.startTime in line:
-            #             if KeyType.deWeightTime in line:
-            #                 continue
-            #             else:
-            #                 startLineNum = stempLienNum
-
-            #         if self.finishTime in line:
-            #             if "END" in line:
-            #                 continue
-            #             else:
-            #                 finishLineNum = stempLienNum
-                    
+            # 取出全部数据生成Excel sheet    
             if stmpLine <= ftmpLine and ftmpLine > stmpLine:
                 with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
                     for kline in read_file:
@@ -265,33 +176,13 @@ class CheckAmemory(Animalm):
 
         # 实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥60s，后期改为可配置）
         elif CheckAmemory.secondaryMaximum <= mNum < CheckAmemory.kPI or CheckAmemory.secondaryMaximum <= eNum < CheckAmemory.kPI :
-            # print("实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥60s）")
-            # 加入容错判断
-            # with open(self.readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
-            #     for line in read_file:
-            #         stempLienNum = stempLienNum + 1
-            #         if self.startTime in line:
-            #             if KeyType.deWeightTime in line:
-            #                 continue
-            #             else:
-            #                 startLineNum = stempLienNum
-
-            #         if self.finishTime in line:
-            #             if "END" in line:
-            #                 continue
-            #             else:
-            #                 finishLineNum = stempLienNum
-                    
             if stmpLine <= ftmpLine and ftmpLine > stmpLine:
                 with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
                     i = 0
                     b = 0
                     for sline in read_file:
-     
                         sline = sline.strip('\n')
                         if stempNum >= stmpLine and stempNum < ftmpLine:
-                            
-
                             sa = sline.split()
                             sb = sa[5]
                             stempNumOneT = int(sb[:-1])
@@ -305,11 +196,9 @@ class CheckAmemory(Animalm):
                                 # print(stempList)
                                 # print("1000<=X<1024 所在行位置： %s  的行数 = %d"%(sa,i+1))
                                 b = b+1
-                                
                             else:
                                 pass
                                 # print("不在1000<=X<1024范围内")
-                            
                         else:
                             pass
                             # print("！输入参数错误！")
@@ -334,22 +223,6 @@ class CheckAmemory(Animalm):
             print("实现场景3：内存一直未超1000MB,但开始与结束的实际落差值在%sMB,已超过KPI: %s MB"%((int(eNum) - int(sNum)),CheckAmemory.divide_The_Value))
             self.write_to_excel()
             # 取出存在落差的全部数据创新sheet,并创建柱状图
-            # with open(self.readPath,'r',encoding = 'UTF-8',errors = "ignore") as read_file:
-            #     for line in read_file:
-            #         stempLienNum = stempLienNum + 1
-                    
-            #         if self.startTime in line:
-            #             if KeyType.deWeightTime in line:
-            #                 continue
-            #             else:
-            #                 startLineNum = stempLienNum
-
-            #         if self.finishTime in line:
-            #             if "END" in line:
-            #                 continue
-            #             else:
-            #                 finishLineNum = stempLienNum
-
             if stmpLine <= ftmpLine and ftmpLine > stmpLine:
                 with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
                     for xline in read_file:
@@ -361,8 +234,9 @@ class CheckAmemory(Animalm):
             print("实现场景4：本次内存峰值和结束值不存在超%sMB的测试场景"%(CheckAmemory.kPI))
 
         return(startNum,endNum,maxNum,KPIList)
-
+    # @CallingCounter
     def write_to_excel(self):
+        print('写入函数被调用：1次')
         alist = [] 
         blist = []
         flist = []
@@ -400,11 +274,9 @@ class CheckAmemory(Animalm):
         workbooksheet.write_column('C2',flist) 
 
             # print(alist,blist,flist,end='')
+        count += 1
         workbook.close() 
-        
-
-
-        
+               
 # 读取excel的类
 class ExcelData():
     # 初始化方法
@@ -494,6 +366,15 @@ class ExcelWrite(object):
             print("传参错误,单元格：%i个,写入值：%i个" % (len(cells), len(values)))
     # 将字典列表导出到excel文件中：待验证
 
+# 统计函数被调用的次数类
+class CallingCounter(object):
+    def __init__(self,func):
+        self.func = func
+        self.count = 0
+
+    def __call__(self,*args,**kwargs):
+        self.count += 1
+        return self.func(*args,**kwargs)
 
 
 
@@ -545,7 +426,7 @@ if __name__ == '__main__':
                 pass
                 # print("不存在Output_Path和Valgrind_File文件夹")
 
-
+    # print(f'函数被调用了：{write_to_excel.count}次')
     # excel表的方法分析类
     # get_data = ExcelData(exclPath,sheetname)
     # datarows = get_data.readRowValues()
@@ -555,8 +436,7 @@ if __name__ == '__main__':
     # values1 = (startNum,endNum,maxNum)
     # start.write_values(cells1,values1)
 
-        # export_excel(kpiList,writeFileName)
-    # https://blog.csdn.net/weixin_39082390/article/details/97375083?utm_medium=distribute.pc_relevant.none-task-blog-baidujs-1
+
 
 
 
