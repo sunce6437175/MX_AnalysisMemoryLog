@@ -221,7 +221,7 @@ class CheckAmemory(Animalm):
         # 实现场景3：内存一直未超1000MB,但开始与结束的落差值在xxx（divide_The_Value =300mb,后期改为可配置在json文件中）
         elif mNum < CheckAmemory.secondaryMaximum and (int(eNum) - int(sNum)) >= CheckAmemory.divide_The_Value :
             print("实现场景3：内存一直未超1000MB,但开始与结束的实际落差值在%sMB,已超过KPI: %s MB"%((int(eNum) - int(sNum)),CheckAmemory.divide_The_Value))
-            self.write_to_excel()
+            # self.write_to_excel()
             # 取出存在落差的全部数据创新sheet,并创建柱状图
             if stmpLine <= ftmpLine and ftmpLine > stmpLine:
                 with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
@@ -237,11 +237,13 @@ class CheckAmemory(Animalm):
     # @CallingCounter
     def write_to_excel(self):
         print('写入函数被调用：1次')
-        alist = [] 
+        alist = []      
         blist = []
         flist = []
+        # lenlist = []  
         count = 0
-        headings = ['年月','小时','内存值']
+        headings = ['年月日','小时','内存值(MB)']
+        sheet = self.name
         print('--write_to_excel--')
         # rb = xlrd.open_workbook(self.writePath)
         workbook = xlsxwriter.Workbook(self.writePath)
@@ -250,12 +252,10 @@ class CheckAmemory(Animalm):
         # workbooksheet.write_row()
         with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
             for kline in read_file:
-
+                # lenlist.append(len(kline))
                 if "BEGIN" in kline:
                     continue
-                elif "END" in kline:
-                    continue
-                elif len(kline) == 85 :
+                elif len(kline) >= 84 :
                     kline = kline.strip('\n').split()
                     alist.append(kline[0])
                     # print(kline[0])
@@ -263,20 +263,43 @@ class CheckAmemory(Animalm):
                     # print(kline[1])
                     if kline[5] != None:
                         # print(kline[5])
-                        flist.append(kline[5])
+                        a = kline[5]
+                        flist.append(int(a[:-1]))
                     else:
                         break
+                elif "END" in kline:
+                    continue
                 else:
                     pass
                     # print("数据不满足11位")
         workbooksheet.write_column('A2',alist)
         workbooksheet.write_column('B2',blist) 
         workbooksheet.write_column('C2',flist) 
+        # workbooksheet.write_column('D2',lenlist)
+        print('sheet 名称：%s'%(sheet))
+        categoriesLen = len(blist)
+        valuesLen = len(flist)
+        print(categoriesLen)
+        print(valuesLen)
+        chart_col = workbook.add_chart({'type':'line'})
+        chart_col.add_series(
+            {
+            'name':'= sheet!$B$1',
+            'categories':'= sheet!$B$2:$B$categoriesLen',
+            'values':'= sheet!$C$2:$C$valuesLen',
+            'line':{'color':'red'},
+            }
+        )
+        chart_col.set_title({'name':'测试'})
+        chart_col.set_x_axis({'name':'运行时间'})
+        chart_col.set_y_axis({'name':'内存值'})
+        chart_col.set_style(1)
+        # 放置位置
+        workbooksheet.insert_chart('E2',chart_col,{'x_offset':25,'y_offset':10})
 
-            # print(alist,blist,flist,end='')
         count += 1
         workbook.close() 
-               
+
 # 读取excel的类
 class ExcelData():
     # 初始化方法
@@ -380,7 +403,7 @@ class CallingCounter(object):
 
 
 if __name__ == '__main__':
-    # sheetname = "Sheet1"
+    # 读取json 配置文件路径
     with open(KeyType.configJsonPath) as c:
         config = json.load(c)
         writeFileName = config['Output_Path']
