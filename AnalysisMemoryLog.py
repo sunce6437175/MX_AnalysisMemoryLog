@@ -257,8 +257,10 @@ class CheckAmemory(Animalm):
                     continue
                 elif len(kline) >= 84 :
                     kline = kline.strip('\n').split()
+                    print(type((kline[0]).strip()))
                     alist.append((kline[0]).strip())
                     # print(kline[0])
+                    print(type((kline[1]).strip()))
                     blist.append((kline[1]).strip())
                     # print(kline[1])
                     if kline[5] != None:
@@ -289,8 +291,6 @@ class CheckAmemory(Animalm):
             'values':'= sheet!$C$2:$C$10',
             'line':{'color':'red'},
             }
-
-
         )
         chart_col.set_title({'name':'测试'})
         chart_col.set_x_axis({'name':'运行时间'})
