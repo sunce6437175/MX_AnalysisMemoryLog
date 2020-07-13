@@ -247,7 +247,7 @@ class CheckAmemory(Animalm):
         print('--write_to_excel--')
         # rb = xlrd.open_workbook(self.writePath)
         workbook = xlsxwriter.Workbook(self.writePath)
-        workbooksheet = workbook.add_worksheet(self.name)
+        workbooksheet = workbook.add_worksheet(sheet)
         workbooksheet.write_row('A1',headings)
         # workbooksheet.write_row()
         with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
@@ -257,13 +257,13 @@ class CheckAmemory(Animalm):
                     continue
                 elif len(kline) >= 84 :
                     kline = kline.strip('\n').split()
-                    alist.append(kline[0])
+                    alist.append((kline[0]).strip())
                     # print(kline[0])
-                    blist.append(kline[1])
+                    blist.append((kline[1]).strip())
                     # print(kline[1])
                     if kline[5] != None:
                         # print(kline[5])
-                        a = kline[5]
+                        a = (kline[5].strip())
                         flist.append(int(a[:-1]))
                     else:
                         break
@@ -285,10 +285,12 @@ class CheckAmemory(Animalm):
         chart_col.add_series(
             {
             'name':'= sheet!$B$1',
-            'categories':'= sheet!$B$2:$B$categoriesLen',
-            'values':'= sheet!$C$2:$C$valuesLen',
+            'categories':'= sheet!$B$2:$B$10',
+            'values':'= sheet!$C$2:$C$10',
             'line':{'color':'red'},
             }
+
+
         )
         chart_col.set_title({'name':'测试'})
         chart_col.set_x_axis({'name':'运行时间'})
