@@ -246,7 +246,7 @@ class CheckAmemory(Animalm):
         sheet = self.name
         print('--write_to_excel--')
         # rb = xlrd.open_workbook(self.writePath)
-        workbook = xlsxwriter.Workbook(self.writePath)
+        workbook = xlsxwriter.Workbook(self.writePath, {'strings_to_numbers':False})
         workbooksheet = workbook.add_worksheet(sheet)
         workbooksheet.write_row('A1',headings)
         # workbooksheet.write_row()
@@ -257,10 +257,10 @@ class CheckAmemory(Animalm):
                     continue
                 elif len(kline) >= 84 :
                     kline = kline.strip('\n').split()
-                    print(type((kline[0]).strip()))
+                    # print(type((kline[0]).strip()))
                     alist.append((kline[0]).strip())
                     # print(kline[0])
-                    print(type((kline[1]).strip()))
+                    # print(type((kline[1]).strip()))
                     blist.append((kline[1]).strip())
                     # print(kline[1])
                     if kline[5] != None:
