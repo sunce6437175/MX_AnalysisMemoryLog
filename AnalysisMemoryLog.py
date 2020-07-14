@@ -23,7 +23,7 @@ class KeyType:
     setupFilePath = os.path.join(os.getcwd(),setupFileName).replace("\\",'/')
     # 最新批量json配置项地址获取(获取当前文件的绝对路径)
     configJsonPath = os.path.join(os.path.abspath(os.path.dirname(__file__)),configJsonName).replace("\\",'/')
-class Animalm(object):
+class Animalm:
     startLineNum = 0    # 开始行数
     finishLineNum = 0   # 结束行数
 
@@ -31,7 +31,9 @@ class Animalm(object):
     secondaryMaximum = 1000      # 次峰值范围值
     divide_The_Value = 300      # 开始与结束的落差 阀值
     divide_The_Time = 60      # 保持时间≥60s 阈值
-
+    
+    sheetcount = 0
+    sheetNameList = []
     def __init__(self,name,startTime,finishTime,readPath,writePath,exclPath):
         self.name = name
         self.startTime = startTime
@@ -39,6 +41,7 @@ class Animalm(object):
         self.readPath = readPath
         self.writePath = writePath
         self.exclPath = exclPath
+
 
     def check_tmpLine(self):
         # tempList = []       # 标注列表
@@ -52,19 +55,20 @@ class Animalm(object):
                     if KeyType.deWeightTime in line:
                         continue
                     else:
-                        startLineNum = tempLienNum
+                        Animalm.startLineNum = tempLienNum
+                        
                 if self.finishTime in line:
                     if "END" in line:
                         continue
                     else:
-                        finishLineNum = tempLienNum
-        return(startLineNum,finishLineNum)
+                        Animalm.finishLineNum = tempLienNum
+        print(Animalm.startLineNum,Animalm.finishLineNum)
+        return(Animalm.startLineNum,Animalm.startLineNum)
 
-class CheckAmemory(Animalm):
-
-    def __init__(self,name,startTime,finishTime,readPath,writePath,exclPath,type='虚构类'):
-        self.type = type
-        Animalm.__init__(self,name,startTime,finishTime,readPath,writePath,exclPath)
+# class CheckAmemory(Animalm):
+    # def __init__(self,name,startTime,finishTime,readPath,writePath,exclPath,type='虚构类'):
+    #     self.type = type
+    #     Animalm.__init__(self,name,startTime,finishTime,readPath,writePath,exclPath)
 
     #判断有效运行时间
     def check_memoryTime(self):
@@ -82,27 +86,25 @@ class CheckAmemory(Animalm):
         dayCtimes = ((vFt - vSt).total_seconds())/3600
         print("本次有效时间-----共%.2f小时-----"%(dayCtimes))
         # 2.2）以及当内存超1024MB时所需时间。（超 kpi xxxxMB才需判断）
-        stmpLine = Animalm.check_tmpLine(self)[0]      # 调用父类check_tmpLine方法并赋值起始行，防止初始化循环调用
-        ftmpLine = Animalm.check_tmpLine(self)[1]      # 调用父类check_tmpLine方法并赋值结束行，防止初始化循环调用
-        # print(Animalm.check_tmpLine(self)[0],Animalm.check_tmpLine(self)[1])
+        stmpLine = self.startLineNum      # 调用父类check_tmpLine方法并赋值起始行，防止初始化循环调用
+        ftmpLine = self.finishLineNum      # 调用父类check_tmpLine方法并赋值结束行，防止初始化循环调用
         if stmpLine <= ftmpLine and ftmpLine > stmpLine:
             # print(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()))
             with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
                 for xline in read_file:
                     xline = xline.strip('\n')
-                    # print(xline)
                     if tempNum >= stmpLine and tempNum < ftmpLine:
                         a = xline.split()
                         b = a[5]
                         # tempList.append(int(b[:-1]))
-                        if int(b[:-1]) == CheckAmemory.kPI :
+                        if int(b[:-1]) == Animalm.kPI :
                             surpassDay = str((a[0]).strip('['))
                             surpassHour = (a[1])
                             surpassStr = (surpassDay + ' '+ surpassHour).rsplit(']')
                             surpassTime = datetime.datetime.strptime((surpassStr[0]).replace("/",'-'),"%Y-%m-%d %H:%M:%S")
-                            print("开始超过 %sMB 的时间戳为 %s"%(CheckAmemory.kPI,a[0] + ' ' +a[1]))
+                            print("开始超过 %sMB 的时间戳为 %s"%(Animalm.kPI,a[0] + ' ' +a[1]))
                             surpassTimeS = ((vSt - surpassTime).seconds)/3600
-                            print("导航放置 %.2f 小时到达 %s MB"%(surpassTimeS,CheckAmemory.kPI))
+                            print("导航放置 %.2f 小时到达 %s MB"%(surpassTimeS,Animalm.kPI))
                             break
                         else:
                             pass
@@ -110,7 +112,6 @@ class CheckAmemory(Animalm):
                         pass
                     tempNum = tempNum + 1
             # print(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()))
-
         else:
             pass
         return(dayCtimes)
@@ -119,7 +120,6 @@ class CheckAmemory(Animalm):
     def check_memorylog(self):
         tempLienNum = 0        # 标注行数
         tempList = []          # 标注列表
-        # templine = 0
         tempNum = 0            # 对比行数
         KPIList = []         # 获取超KPI的数据列表
 
@@ -132,11 +132,12 @@ class CheckAmemory(Animalm):
         dtvList = []
 
         #取得开始结束值以及最大值 
-        stmpLine = Animalm.check_tmpLine(self)[0]      # 调用父类check_tmpLine方法并赋值起始行，防止初始化循环调用
-        ftmpLine = Animalm.check_tmpLine(self)[1]      # 调用父类check_tmpLine方法并赋值结束行，防止初始化循环调用
+        stmpLine = Animalm.startLineNum      # 调用父类check_tmpLine方法并赋值起始行，防止初始化循环调用
+        ftmpLine = Animalm.finishLineNum      # 调用父类check_tmpLine方法并赋值结束行，防止初始化循环调用
         # print(Animalm.check_tmpLine(self)[0],Animalm.check_tmpLine(self)[1])
         if stmpLine <= ftmpLine and ftmpLine > stmpLine:
             with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
+                print(read_file)
                 for xline in read_file:
                     xline = xline.strip('\n')
                     if tempNum >= stmpLine and tempNum < ftmpLine:
@@ -157,9 +158,11 @@ class CheckAmemory(Animalm):
         maxNum = '最大内存值: ' + str(max(tempList)) + ' MB'
 
         # 实现场景1：判断峰值或结束值是已超1024MB
-        if mNum >= CheckAmemory.kPI and eNum >= CheckAmemory.kPI :
+        if mNum >= Animalm.kPI and eNum >= Animalm.kPI :
             print("实现场景1：判断峰值和结束已超1024MB")
-            self.write_to_excel()
+            self.write_to_time()
+            Animalm.sheetNameList.append(self.name)
+            # self.write_to_excel()
             # 取出全部数据生成Excel sheet    
             if stmpLine <= ftmpLine and ftmpLine > stmpLine:
                 with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
@@ -171,11 +174,12 @@ class CheckAmemory(Animalm):
                         else:
                             kline = kline.strip('\n').split()
                             KPIList.append(kline)
+                            
             else:
                 print("起始结束行位置错误")
 
         # 实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥60s，后期改为可配置）
-        elif CheckAmemory.secondaryMaximum <= mNum < CheckAmemory.kPI or CheckAmemory.secondaryMaximum <= eNum < CheckAmemory.kPI :
+        elif Animalm.secondaryMaximum <= mNum < Animalm.kPI or Animalm.secondaryMaximum <= eNum < Animalm.kPI :
             if stmpLine <= ftmpLine and ftmpLine > stmpLine:
                 with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
                     i = 0
@@ -187,13 +191,11 @@ class CheckAmemory(Animalm):
                             sb = sa[5]
                             stempNumOneT = int(sb[:-1])
                             # 判断范围在1000 - 1024之间的时间和信息   方法：不连续，用“1”来间隔
-                            if stempNumOneT >= CheckAmemory.secondaryMaximum and stempNumOneT < CheckAmemory.kPI:
+                            if stempNumOneT >= Animalm.secondaryMaximum and stempNumOneT < Animalm.kPI:
                                 
                                 # 加入所在目标行位置
                                 sa.append(i+1)
-                                # print(sa)
                                 stempList.append(sa)
-                                # print(stempList)
                                 # print("1000<=X<1024 所在行位置： %s  的行数 = %d"%(sa,i+1))
                                 b = b+1
                             else:
@@ -209,18 +211,23 @@ class CheckAmemory(Animalm):
                         elif i == ftmpLine + 1 :
                             break
                         print('超过在1000 - 1024之间的连续时间：%d s'%b)
-                        if b >=  CheckAmemory.divide_The_Time :
-                            print("实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥%ds）"%CheckAmemory.divide_The_Time)
+                        if b >= Animalm.divide_The_Time :
+                            print("实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥%ds）"%Animalm.divide_The_Time)
+                            self.write_to_time()
+                            Animalm.sheetNameList.append(self.name)
+                            # self.write_to_excel()
                         else:
-                            print("未实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持未≥%ds）"%CheckAmemory.divide_The_Time)
+                            print("未实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持未≥%ds）"%Animalm.divide_The_Time)
 
                 # break
             # else:
             #     print("！输入参时间错误！")
 
         # 实现场景3：内存一直未超1000MB,但开始与结束的落差值在xxx（divide_The_Value =300mb,后期改为可配置在json文件中）
-        elif mNum < CheckAmemory.secondaryMaximum and (int(eNum) - int(sNum)) >= CheckAmemory.divide_The_Value :
-            print("实现场景3：内存一直未超1000MB,但开始与结束的实际落差值在%sMB,已超过KPI: %s MB"%((int(eNum) - int(sNum)),CheckAmemory.divide_The_Value))
+        elif mNum < Animalm.secondaryMaximum and (int(eNum) - int(sNum)) >= Animalm.divide_The_Value :
+            print("实现场景3：内存一直未超1000MB,但开始与结束的实际落差值在%sMB,已超过KPI: %s MB"%((int(eNum) - int(sNum)),Animalm.divide_The_Value))
+            self.write_to_time()
+            Animalm.sheetNameList.append(self.name)
             # self.write_to_excel()
             # 取出存在落差的全部数据创新sheet,并创建柱状图
             if stmpLine <= ftmpLine and ftmpLine > stmpLine:
@@ -231,76 +238,122 @@ class CheckAmemory(Animalm):
                 # print(dtvList)
         # 实现场景4：判断峰值或结束值是未超1024MB，且未长时间1000MB和且未超开始结束落差值
         else:
-            print("实现场景4：本次内存峰值和结束值不存在超%sMB的测试场景"%(CheckAmemory.kPI))
+            print("实现场景4：本次内存峰值和结束值不存在超%sMB的测试场景"%(Animalm.kPI))
 
-        return(startNum,endNum,maxNum,KPIList)
+        return(self.readPath,self.writePath)
     # @CallingCounter
-    def write_to_excel(self):
-        print('写入函数被调用：1次')
-        alist = []      
-        blist = []
-        flist = []
-        # lenlist = []  
-        count = 0
-        headings = ['年月日','小时','内存值(MB)']
-        sheet = self.name
-        print('--write_to_excel--')
-        # rb = xlrd.open_workbook(self.writePath)
-        workbook = xlsxwriter.Workbook(self.writePath, {'strings_to_numbers':False})
-        workbooksheet = workbook.add_worksheet(sheet)
-        workbooksheet.write_row('A1',headings)
-        # workbooksheet.write_row()
-        with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
-            for kline in read_file:
-                # lenlist.append(len(kline))
-                if "BEGIN" in kline:
-                    continue
-                elif len(kline) >= 84 :
-                    kline = kline.strip('\n').split()
-                    # print(type((kline[0]).strip()))
-                    alist.append((kline[0]).strip())
-                    # print(kline[0])
-                    # print(type((kline[1]).strip()))
-                    blist.append((kline[1]).strip())
-                    # print(kline[1])
-                    if kline[5] != None:
-                        # print(kline[5])
-                        a = (kline[5].strip())
-                        flist.append(int(a[:-1]))
-                    else:
-                        break
-                elif "END" in kline:
-                    continue
-                else:
-                    pass
-                    # print("数据不满足11位")
-        workbooksheet.write_column('A2',alist)
-        workbooksheet.write_column('B2',blist) 
-        workbooksheet.write_column('C2',flist) 
-        # workbooksheet.write_column('D2',lenlist)
-        print('sheet 名称：%s'%(sheet))
-        categoriesLen = len(blist)
-        valuesLen = len(flist)
-        print(categoriesLen)
-        print(valuesLen)
-        chart_col = workbook.add_chart({'type':'line'})
-        chart_col.add_series(
-            {
-            'name':'= sheet!$B$1',
-            'categories':'= sheet!$B$2:$B$10',
-            'values':'= sheet!$C$2:$C$10',
-            'line':{'color':'red'},
-            }
-        )
-        chart_col.set_title({'name':'测试'})
-        chart_col.set_x_axis({'name':'运行时间'})
-        chart_col.set_y_axis({'name':'内存值'})
-        chart_col.set_style(1)
-        # 放置位置
-        workbooksheet.insert_chart('E2',chart_col,{'x_offset':25,'y_offset':10})
+    def write_to_time(self):
+        Animalm.sheetcount +=1
+        
+        # print("sheet名称：%s 和被调用次数 %d"%(self.name,sheetCount))
+        # return (self.name,sheetCount)
+        # print(Animalm.sheetNameList)
+        return(Animalm.sheetNameList)
+# class writeToExcel(Animalm):
+#     def __init__(self,name,startTime,finishTime,readPath,writePath,exclPath):
+        
+#         super(writeToExcel,self).__init__(self,name,startTime,finishTime,readPath,writePath,exclPath)
 
-        count += 1
-        workbook.close() 
+def write_to_excel(sheetnamelist,readPath,writePath):
+    # for sheetindex in range(len(sheetnamelist)):
+    #     print("需要添加sheet名称：%s 和被调用次数 %d"%(sheetnamelist[sheetindex],sheetindex))
+    alist = ()      
+    blist = ()
+    flist = ()
+    # lenlist = []  
+    
+    headings = ['年月日','小时','内存值(MB)']
+    print('--write_to_excel--')
+    print('写入文档路径%s'%writePath)
+
+    workbook = xlsxwriter.Workbook(writePath, {'strings_to_numbers':False})
+    for sheetindex in range(len(sheetnamelist)):
+        index = 0 
+
+        # workbooksheet = workbook.add_worksheet(sheetnamelist[sheetindex])
+        # print(sheetnamelist[sheetindex])
+        with open(KeyType.configJsonPath) as c:
+            config = json.load(c)
+            for d in (config.keys()):
+                if d != "Output_Path" and d != "Valgrind_File" :
+                    data_perison = config.get(d)
+                    for item in data_perison.keys():
+                        if item == "grade":
+                            data_grade = data_perison["grade"]
+                            data_name = data_perison["name"]
+                            data_startTime = data_grade['startTime']
+                            data_endTime = data_grade['endTime']
+                            data_setupFileName = data_grade['setupFilePath']
+                            data_setupFilePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),data_setupFileName).replace("\\",'/')
+
+                            if data_name == sheetnamelist[sheetindex]:
+                                # print(sheetnamelist[sheetindex])
+                              
+                                # print(data_setupFilePath)
+                                with open(data_setupFilePath,'r',encoding='UTF-8',errors="ignore") as readline:
+                                    aalist = []
+                                    bblist = []
+                                    fflist = []
+                                    # print(data_setupFilePath)
+                                    for kline in readline:
+                                        # lenlist.append(len(kline))
+                                        if "BEGIN" in kline:
+                                            continue
+                                        elif len(kline) >= 84 :
+                                            kline = kline.strip('\n').split()
+                                            aalist.append((kline[0]).strip())
+                                            bblist.append((kline[1]).strip())
+                                            if kline[5] != None:
+                                                a = (kline[5].strip())
+                                                fflist.append(int(a[:-1]))
+                                            else:
+                                                break
+                                        elif "END" in kline:
+                                            continue
+                                        else:
+                                            pass
+                                            # print("数据不满足11位")
+                                workbooksheet = workbook.add_worksheet(sheetnamelist[sheetindex])
+                                workbooksheet.write_row('A1',headings)
+                                # 可变对象转换为不可变对应作为函数的默认值（字典,集合,列表等等对象是不适合作为函数默认值的）
+                                alist = tuple(aalist)
+                                blist = tuple(bblist)
+                                flist = tuple(fflist)
+                                workbooksheet.write_column('A2',alist)
+                                workbooksheet.write_column('B2',blist)
+                                workbooksheet.write_column('C2',flist)
+                                index += 1  
+                                #加入数据分析曲线图 
+                                categoriesLen = len(blist)
+                                valuesLen = len(flist)
+    
+                                chart_col = workbook.add_chart({'type':'line'})
+                                
+                                chart_col.add_series(
+                                    {
+                                    # 内存数据名称和单位
+                                    'name':'={sheet_name}!$C$1'.format(sheet_name = sheetnamelist[sheetindex]),
+                                    # X轴时间范围
+                                    'categories':'= {sheet_name}!$B$2:$B${end}'.format(sheet_name = sheetnamelist[sheetindex],end = categoriesLen),
+                                    # Y轴内存曲线
+                                    'values':'= {sheet_name}!$C$2:$C${end}'.format(sheet_name = sheetnamelist[sheetindex],end = valuesLen),
+                                    'line':{'color':'red'},
+                                    }
+                                )
+                                # chart.height = 600
+                                chart_col.height = 600
+                                # chart.width=960
+                                chart_col.width = 960
+                                chart_col.set_title({'name':'稳定性测试'})
+                                chart_col.set_x_axis({'name':'运行时间'})
+                                chart_col.set_y_axis({'name':'内存值'})
+                                chart_col.set_style(1)
+                                # 放置位置
+                                workbooksheet.insert_chart('E2',chart_col,{'x_offset':25,'y_offset':10})
+    # print(len(alist))
+    # print(len(blist))
+    # print(len(flist))
+    workbook.close() 
 
 # 读取excel的类
 class ExcelData():
@@ -402,9 +455,10 @@ class CallingCounter(object):
         return self.func(*args,**kwargs)
 
 
-
-
 if __name__ == '__main__':
+    namelist = []
+    readPath = ''
+    writePath = ''
     # 读取json 配置文件路径
     with open(KeyType.configJsonPath) as c:
         config = json.load(c)
@@ -419,7 +473,7 @@ if __name__ == '__main__':
         for d in (config.keys()):
             if d != "Output_Path" and d != "Valgrind_File" :
                 data_perison = config.get(d)
-                print(d)
+                # print(d)
                 for item in data_perison.keys():
                     if item == "grade":
                         data_grade = data_perison["grade"]
@@ -429,17 +483,19 @@ if __name__ == '__main__':
                         data_setupFileName = data_grade['setupFilePath']
                         data_setupFilePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),data_setupFileName).replace("\\",'/')
                         print('==============================start==============================')
-                        print(data_name)
-                        print(data_startTime)
-                        print(data_endTime)
-                        print(data_setupFilePath)
-                        ap = Animalm(data_name,data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
-                        # ap.check_tmpLine()
-                        # persion = CheckAmemory(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
-                        persion = CheckAmemory(data_name,data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
+                        # print(data_name)
+                        # print(data_startTime)
+                        # print(data_endTime)
+                        # print(data_setupFilePath)
+                        persion = Animalm(data_name,data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
+       
                         persion.check_tmpLine()
                         persion.check_memoryTime()
-                        persion.check_memorylog()
+                        readPath,writePath = persion.check_memorylog()
+                        namelist = persion.write_to_time()
+                        print('最终名单：%s'%namelist)
+
+                       
                         # a = Check_Amemory(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
                         # validTime = check_memoryTime(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
                         # Check_Amemory.
@@ -450,16 +506,9 @@ if __name__ == '__main__':
             else:
                 pass
                 # print("不存在Output_Path和Valgrind_File文件夹")
-
+    write_to_excel(namelist,readPath,writePath)
     # print(f'函数被调用了：{write_to_excel.count}次')
-    # excel表的方法分析类
-    # get_data = ExcelData(exclPath,sheetname)
-    # datarows = get_data.readRowValues()
-    # excel表的写入类
-    # start = ExcelWrite(writeFileName)
-    # cells1 = [(0,0),(1,1),(2,2)]
-    # values1 = (startNum,endNum,maxNum)
-    # start.write_values(cells1,values1)
+
 
 
 
