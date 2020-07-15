@@ -65,11 +65,6 @@ class Animalm:
         print(Animalm.startLineNum,Animalm.finishLineNum)
         return(Animalm.startLineNum,Animalm.startLineNum)
 
-# class CheckAmemory(Animalm):
-    # def __init__(self,name,startTime,finishTime,readPath,writePath,exclPath,type='虚构类'):
-    #     self.type = type
-    #     Animalm.__init__(self,name,startTime,finishTime,readPath,writePath,exclPath)
-
     #判断有效运行时间
     def check_memoryTime(self):
         tempList = []       # 标注列表
@@ -162,7 +157,6 @@ class Animalm:
             print("实现场景1：判断峰值和结束已超1024MB")
             self.write_to_time()
             Animalm.sheetNameList.append(self.name)
-            # self.write_to_excel()
             # 取出全部数据生成Excel sheet    
             if stmpLine <= ftmpLine and ftmpLine > stmpLine:
                 with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
@@ -192,7 +186,6 @@ class Animalm:
                             stempNumOneT = int(sb[:-1])
                             # 判断范围在1000 - 1024之间的时间和信息   方法：不连续，用“1”来间隔
                             if stempNumOneT >= Animalm.secondaryMaximum and stempNumOneT < Animalm.kPI:
-                                
                                 # 加入所在目标行位置
                                 sa.append(i+1)
                                 stempList.append(sa)
@@ -215,11 +208,8 @@ class Animalm:
                             print("实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥%ds）"%Animalm.divide_The_Time)
                             self.write_to_time()
                             Animalm.sheetNameList.append(self.name)
-                            # self.write_to_excel()
                         else:
                             print("未实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持未≥%ds）"%Animalm.divide_The_Time)
-
-                # break
             # else:
             #     print("！输入参时间错误！")
 
@@ -228,14 +218,12 @@ class Animalm:
             print("实现场景3：内存一直未超1000MB,但开始与结束的实际落差值在%sMB,已超过KPI: %s MB"%((int(eNum) - int(sNum)),Animalm.divide_The_Value))
             self.write_to_time()
             Animalm.sheetNameList.append(self.name)
-            # self.write_to_excel()
             # 取出存在落差的全部数据创新sheet,并创建柱状图
             if stmpLine <= ftmpLine and ftmpLine > stmpLine:
                 with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
                     for xline in read_file:
                         xline = xline.strip('\n')
                         dtvList.append(xline)
-                # print(dtvList)
         # 实现场景4：判断峰值或结束值是未超1024MB，且未长时间1000MB和且未超开始结束落差值
         else:
             print("实现场景4：本次内存峰值和结束值不存在超%sMB的测试场景"%(Animalm.kPI))
@@ -249,19 +237,12 @@ class Animalm:
         # return (self.name,sheetCount)
         # print(Animalm.sheetNameList)
         return(Animalm.sheetNameList)
-# class writeToExcel(Animalm):
-#     def __init__(self,name,startTime,finishTime,readPath,writePath,exclPath):
-        
-#         super(writeToExcel,self).__init__(self,name,startTime,finishTime,readPath,writePath,exclPath)
-
+# 自定义的写入类
 def write_to_excel(sheetnamelist,readPath,writePath):
-    # for sheetindex in range(len(sheetnamelist)):
-    #     print("需要添加sheet名称：%s 和被调用次数 %d"%(sheetnamelist[sheetindex],sheetindex))
     alist = ()      
     blist = ()
     flist = ()
-    # lenlist = []  
-    
+
     headings = ['年月日','小时','内存值(MB)']
     print('--write_to_excel--')
     print('写入文档路径%s'%writePath)
@@ -270,8 +251,6 @@ def write_to_excel(sheetnamelist,readPath,writePath):
     for sheetindex in range(len(sheetnamelist)):
         index = 0 
 
-        # workbooksheet = workbook.add_worksheet(sheetnamelist[sheetindex])
-        # print(sheetnamelist[sheetindex])
         with open(KeyType.configJsonPath) as c:
             config = json.load(c)
             for d in (config.keys()):
@@ -287,22 +266,20 @@ def write_to_excel(sheetnamelist,readPath,writePath):
                             data_setupFilePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),data_setupFileName).replace("\\",'/')
 
                             if data_name == sheetnamelist[sheetindex]:
-                                # print(sheetnamelist[sheetindex])
-                              
-                                # print(data_setupFilePath)
                                 with open(data_setupFilePath,'r',encoding='UTF-8',errors="ignore") as readline:
                                     aalist = []
                                     bblist = []
                                     fflist = []
-                                    # print(data_setupFilePath)
+
                                     for kline in readline:
-                                        # lenlist.append(len(kline))
                                         if "BEGIN" in kline:
                                             continue
                                         elif len(kline) >= 84 :
                                             kline = kline.strip('\n').split()
-                                            aalist.append((kline[0]).strip())
-                                            bblist.append((kline[1]).strip())
+                                            yearline = (kline[0]).strip()
+                                            aalist.append(yearline.strip('['))
+                                            hourline = (kline[1]).strip()
+                                            bblist.append(hourline.strip(']'))
                                             if kline[5] != None:
                                                 a = (kline[5].strip())
                                                 fflist.append(int(a[:-1]))
@@ -340,9 +317,7 @@ def write_to_excel(sheetnamelist,readPath,writePath):
                                     'line':{'color':'red'},
                                     }
                                 )
-                                # chart.height = 600
                                 chart_col.height = 600
-                                # chart.width=960
                                 chart_col.width = 960
                                 chart_col.set_title({'name':'稳定性测试'})
                                 chart_col.set_x_axis({'name':'运行时间'})
@@ -350,9 +325,6 @@ def write_to_excel(sheetnamelist,readPath,writePath):
                                 chart_col.set_style(1)
                                 # 放置位置
                                 workbooksheet.insert_chart('E2',chart_col,{'x_offset':25,'y_offset':10})
-    # print(len(alist))
-    # print(len(blist))
-    # print(len(flist))
     workbook.close() 
 
 # 读取excel的类
@@ -454,7 +426,6 @@ class CallingCounter(object):
         self.count += 1
         return self.func(*args,**kwargs)
 
-
 if __name__ == '__main__':
     namelist = []
     readPath = ''
@@ -488,17 +459,13 @@ if __name__ == '__main__':
                         # print(data_endTime)
                         # print(data_setupFilePath)
                         persion = Animalm(data_name,data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
-       
                         persion.check_tmpLine()
                         persion.check_memoryTime()
                         readPath,writePath = persion.check_memorylog()
                         namelist = persion.write_to_time()
-                        print('最终名单：%s'%namelist)
+                        print('出现问题的最终名单：%s'%namelist)
 
-                       
-                        # a = Check_Amemory(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
-                        # validTime = check_memoryTime(data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
-                        # Check_Amemory.
+
                         print('==============================end==============================')
                     else:
                         pass
