@@ -11,7 +11,9 @@ import json
 import pandas as pd
 import time
 import xlsxwriter
+from xlutils.copy import copy
 
+# 配置参数路径class
 class KeyType:
     # 搜索内存关键字
     deWeightTime = "top -m | grep MXNavi"
@@ -20,9 +22,10 @@ class KeyType:
     # 最新批量json配置项
     configJsonName = "config/config.json"
     # 原有setup配置项地址获取(当前工作路径不采用,可考虑删除)
-    setupFilePath = os.path.join(os.getcwd(),setupFileName).replace("\\",'/')
+    # setupFilePath = os.path.join(os.getcwd(),setupFileName).replace("\\",'/')
     # 最新批量json配置项地址获取(获取当前文件的绝对路径)
     configJsonPath = os.path.join(os.path.abspath(os.path.dirname(__file__)),configJsonName).replace("\\",'/')
+
 class Animalm:
     startLineNum = 0    # 开始行数
     finishLineNum = 0   # 结束行数
@@ -237,12 +240,12 @@ class Animalm:
         # return (self.name,sheetCount)
         # print(Animalm.sheetNameList)
         return(Animalm.sheetNameList)
-# 自定义的写入类
+# 自定义的内存error创建excel内容和数据
 def write_to_excel(sheetnamelist,readPath,writePath):
-    alist = ()      
-    blist = ()
-    flist = ()
-
+    alist = ()             # 放置年月日的元组
+    blist = ()            # 放置小时的元组
+    flist = ()            # 放置内存结果的元组
+    originalname = ''     # 放置log原始名称
     headings = ['年月日','小时','内存值(MB)']
     print('--write_to_excel--')
     print('写入文档路径%s'%writePath)
@@ -254,7 +257,7 @@ def write_to_excel(sheetnamelist,readPath,writePath):
         with open(KeyType.configJsonPath) as c:
             config = json.load(c)
             for d in (config.keys()):
-                if d != "Output_Path" and d != "Valgrind_File" :
+                if d != "Output_Path" and d != "Valgrind_File" and d != "WDX_Output_Path":
                     data_perison = config.get(d)
                     for item in data_perison.keys():
                         if item == "grade":
@@ -264,6 +267,7 @@ def write_to_excel(sheetnamelist,readPath,writePath):
                             data_endTime = data_grade['endTime']
                             data_setupFileName = data_grade['setupFilePath']
                             data_setupFilePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),data_setupFileName).replace("\\",'/')
+                            originalname = data_setupFileName
 
                             if data_name == sheetnamelist[sheetindex]:
                                 with open(data_setupFilePath,'r',encoding='UTF-8',errors="ignore") as readline:
@@ -299,6 +303,7 @@ def write_to_excel(sheetnamelist,readPath,writePath):
                                 workbooksheet.write_column('A2',alist)
                                 workbooksheet.write_column('B2',blist)
                                 workbooksheet.write_column('C2',flist)
+                                workbooksheet.write('D1',originalname )
                                 index += 1  
                                 #加入数据分析曲线图 
                                 categoriesLen = len(blist)
@@ -327,7 +332,15 @@ def write_to_excel(sheetnamelist,readPath,writePath):
                                 workbooksheet.insert_chart('E2',chart_col,{'x_offset':25,'y_offset':10})
     workbook.close() 
 
-# 读取excel的类
+# 自定义生成汇总Excel表格（已稳定性结果为模板）读已知文档
+def readExcel(data_wdx_path):
+    oldwb = xlrd.open_workbook(data_wdx_path)
+
+
+
+
+
+# 公共读取excel的类
 class ExcelData():
     # 初始化方法
     def __init__(self, data_path, sheetname):
@@ -383,7 +396,7 @@ class ExcelData():
         # 返回从excel中获取到的数据：以列表存字典的形式返回
         return datas
 
-# 覆盖写入的类
+# 公共覆盖写入的类
 class ExcelWrite(object):
     def __init__(self,write_Path):
         self.write_Path = write_Path  # # excel的存放路径
@@ -427,14 +440,18 @@ class CallingCounter(object):
         return self.func(*args,**kwargs)
 
 if __name__ == '__main__':
+    wdx_sheet_name = '常规版本稳定性测试结果'
     namelist = []
     readPath = ''
     writePath = ''
+    readdata = []
     # 读取json 配置文件路径
     with open(KeyType.configJsonPath) as c:
         config = json.load(c)
         writeFileName = config['Output_Path']
-        print(writeFileName)
+        writeWdxFielName = config['WDX_Output_Path']
+        writeWdxFielPath = os.path.join(os.path.abspath(os.path.dirname(__file__)),writeWdxFielName).replace('\\','/')
+        # print(writeWdxFielName)
     #判断 Output_Path 文件夹是否存在
         if os.path.exists(config['Output_Path']):
             print("Output_Path 已存在")
@@ -442,7 +459,7 @@ if __name__ == '__main__':
             #结果False 就创建文件夹 
             os.makedirs(config['Output_Path'])
         for d in (config.keys()):
-            if d != "Output_Path" and d != "Valgrind_File" :
+            if d != "Output_Path" and d != "Valgrind_File" and d != "WDX_Output_Path":
                 data_perison = config.get(d)
                 # print(d)
                 for item in data_perison.keys():
@@ -474,6 +491,11 @@ if __name__ == '__main__':
                 pass
                 # print("不存在Output_Path和Valgrind_File文件夹")
     write_to_excel(namelist,readPath,writePath)
+    old_excel = ExcelData(writeWdxFielPath,wdx_sheet_name)
+    rownum = old_excel.readRowValues()
+    print(rownum)
+    readdata = old_excel.readExcel()
+    print(readdata)
     # print(f'函数被调用了：{write_to_excel.count}次')
 
 
