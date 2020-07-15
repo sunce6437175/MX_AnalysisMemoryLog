@@ -81,5 +81,6 @@
 			}
 		},
 	"Output_Path":"CNS3MemoryNew.xls",
-	"Valgrind_File":"Valgrind_File"
+	"Valgrind_File":"Valgrind_File",
+	"WDX_Output_Path":"CNS3.0_ST_Checklist_WDXTest_SOP1&SOP1.5.xlsx"
 }
