@@ -12,6 +12,7 @@ import pandas as pd
 import time
 import xlsxwriter
 from xlutils.copy import copy
+import openpyxl
 
 # 配置参数路径class
 class KeyType:
@@ -333,11 +334,21 @@ def write_to_excel(sheetnamelist,readPath,writePath):
     workbook.close() 
 
 # 自定义生成汇总Excel表格（已稳定性结果为模板）读已知文档
-def readExcel(data_wdx_path):
-    oldwb = xlrd.open_workbook(data_wdx_path)
+def readExcel(data_wdx_path,sheet_name,startTimeyear,startTimehour):
+    print(data_wdx_path)
+    oldwb = openpyxl.load_workbook(data_wdx_path)
+    oldws = oldwb[sheet_name]
+    # 添加开始日期
+    for i in range(1,len(startTimeyear)+1):
+        startTime = startTimeyear[i-1]
+        oldws.cell(row = i + 4,column = 24).value = startTime
+    # 添加开始时间
+    for i in range(1,len(startTimehour)+1):
+        startTime = startTimehour[i-1]
+        oldws.cell(row = i + 4,column = 25).value = startTime
 
 
-
+    oldwb.save(data_wdx_path)
 
 
 # 公共读取excel的类
@@ -441,10 +452,15 @@ class CallingCounter(object):
 
 if __name__ == '__main__':
     wdx_sheet_name = '常规版本稳定性测试结果'
-    namelist = []
+    namelist = []    # sheet页名称汇总
     readPath = ''
     writePath = ''
-    readdata = []
+    # readdata = []   
+    # start_time_data_collect = []
+    start_time_data_year = []
+    start_time_data_hour = []
+
+
     # 读取json 配置文件路径
     with open(KeyType.configJsonPath) as c:
         config = json.load(c)
@@ -467,6 +483,11 @@ if __name__ == '__main__':
                         data_grade = data_perison["grade"]
                         data_name = data_perison["name"]
                         data_startTime = data_grade['startTime']
+                        # start_time_data_collect.append(data_startTime.split())
+                        # print(len(start_time_data_collect))
+
+                        start_time_data_year.append(data_startTime.split()[0])
+                        start_time_data_hour.append(data_startTime.split()[1])
                         data_endTime = data_grade['endTime']
                         data_setupFileName = data_grade['setupFilePath']
                         data_setupFilePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),data_setupFileName).replace("\\",'/')
@@ -491,11 +512,12 @@ if __name__ == '__main__':
                 pass
                 # print("不存在Output_Path和Valgrind_File文件夹")
     write_to_excel(namelist,readPath,writePath)
-    old_excel = ExcelData(writeWdxFielPath,wdx_sheet_name)
-    rownum = old_excel.readRowValues()
-    print(rownum)
-    readdata = old_excel.readExcel()
-    print(readdata)
+    readExcel(writeWdxFielPath,wdx_sheet_name,start_time_data_year,start_time_data_hour)
+    # old_excel = ExcelData(writeWdxFielPath,wdx_sheet_name)
+    # rownum = old_excel.readRowValues()
+    # print(rownum)
+    # readdata = old_excel.readExcel()
+    # print(readdata)
     # print(f'函数被调用了：{write_to_excel.count}次')
 
 
