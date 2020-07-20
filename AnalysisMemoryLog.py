@@ -35,6 +35,7 @@ class Animalm:
     secondaryMaximum = 1000      # 次峰值范围值
     divide_The_Value = 300      # 开始与结束的落差 阀值
     divide_The_Time = 60      # 保持时间≥60s 阈值
+
     
     sheetcount = 0
     sheetNameList = []
@@ -44,9 +45,10 @@ class Animalm:
     test_Result_status = []
     test_Result = ""
 
-    effective_running_time = []
-    timestamp = []
-    error_running_time = []
+    effective_running_time = []     #导航有效运行时间
+    timestamp = []                 #超1G时间戳
+    error_running_time = []       #超1G所需耗时时间 （汇总时包括时间戳） 
+    divide_Time_list = []         #超过在1000 - 1024之间的连续时间耗时
 
     def __init__(self,name,startTime,finishTime,readPath,writePath,exclPath):
         self.name = name
@@ -92,10 +94,12 @@ class Animalm:
         # 2.1）抽取开始和结束的时间戳，判断有效运行时间（单位：小时）
         dayCtimes = ((vFt - vSt).total_seconds())/3600      # dayCtimes = ((vSt - vFt).total_seconds())/3600
         # print("本次有效时间-----共%.2f小时-----"%(dayCtimes))
-        Animalm.effective_running_time.append("本次有效运行时间--共%.2f小时--"%(dayCtimes))
+        Animalm.effective_running_time.append("运行 %.2f H"%(dayCtimes))
+        
         # 2.2）以及当内存超1024MB时所需时间。（超 kpi xxxxMB才需判断）
         stmpLine = self.startLineNum      # 调用父类check_tmpLine方法并赋值起始行，防止初始化循环调用
         ftmpLine = self.finishLineNum      # 调用父类check_tmpLine方法并赋值结束行，防止初始化循环调用
+        
         if stmpLine <= ftmpLine and ftmpLine > stmpLine:
             # print(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()))
             with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
@@ -112,23 +116,32 @@ class Animalm:
                             surpassTime = datetime.datetime.strptime((surpassStr[0]).replace("/",'-'),"%Y-%m-%d %H:%M:%S")
                             # print("开始超过 %sMB 的时间戳为 %s"%(Animalm.kPI,a[0] + ' ' +a[1]))
                             Animalm.timestamp.append("开始超过 %sMB 的时间戳为 %s"%(Animalm.kPI,a[0] + ' ' +a[1]))
-                            
+                            print(Animalm.timestamp)
                             surpassTimeS = ((vSt - surpassTime).seconds)/3600
                             # print("导航放置 %.2f 小时到达 %s MB"%(surpassTimeS,Animalm.kPI))
                             
-                            Animalm.error_running_time.append("导航放置 %.2f 小时到达 %s MB"%(surpassTimeS,Animalm.kPI))
-                            
+                            Animalm.error_running_time.append("超过%sMB的时间戳为%s /导航放置%.2f小时到达%sMB"%(Animalm.kPI,a[0] + ' ' +a[1],surpassTimeS,Animalm.kPI))
+                            print(Animalm.error_running_time)
                             break
                         else:
                             pass
+                        
                     else:
                         pass
                     tempNum = tempNum + 1
-            print(Animalm.timestamp)
-            print(Animalm.error_running_time)
+            
             # print(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()))
+            
         else:
             pass
+            
+       
+        # print(len(Animalm.effective_running_time))
+        Animalm.error_running_time.append('无')
+        # print('******************************')
+        # print(len(Animalm.timestamp))
+        # print('******************************')
+        # print(len(Animalm.error_running_time))
         return(Animalm.effective_running_time,Animalm.timestamp,Animalm.error_running_time)
 
     # 判断内存开始和结束以及最大值
@@ -183,7 +196,7 @@ class Animalm:
             Animalm.sheetNameList.append(self.name)
             Animalm.test_Result = 'NG'
             Animalm.test_Result_status.append(Animalm.test_Result) 
-            self.check_memoryTime()
+            # self.check_memoryTime()
             # 取出全部数据生成Excel sheet    
             if stmpLine <= ftmpLine and ftmpLine > stmpLine:
                 with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
@@ -229,16 +242,17 @@ class Animalm:
                             continue
                         elif i == ftmpLine + 1 :
                             break
-                        print('超过在1000 - 1024之间的连续时间：%d s'%b)
+                        print('超过在1000 - 1024之间的连续时间：%ds'%b)
                         if b >= Animalm.divide_The_Time :
+                            Animalm.divide_Time_list.append("超过在1000 - 1024之间的连续时间：%ds'"%b)
                             print("实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥%ds）"%Animalm.divide_The_Time)
                             self.write_to_time()
                             Animalm.sheetNameList.append(self.name)
                             Animalm.test_Result = 'NG'
                             Animalm.test_Result_status.append(Animalm.test_Result)   
-                            self.check_memoryTime()
+                            # self.check_memoryTime()
                         else:
-                            print("未实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持未≥%ds）"%Animalm.divide_The_Time)
+                            print("未实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持未≥%ds "%Animalm.divide_The_Time)
                             
             # else:
             #     print("！输入参时间错误！")
@@ -250,7 +264,7 @@ class Animalm:
             Animalm.sheetNameList.append(self.name)
             Animalm.test_Result = 'NG'
             Animalm.test_Result_status.append(Animalm.test_Result)  
-            self.check_memoryTime() 
+            # self.check_memoryTime() 
             # 取出存在落差的全部数据创新sheet,并创建柱状图
             if stmpLine <= ftmpLine and ftmpLine > stmpLine:
                 with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
@@ -262,14 +276,12 @@ class Animalm:
             Animalm.test_Result = 'OK'
             Animalm.test_Result_status.append(Animalm.test_Result)   
             print("实现场景4：本次内存峰值和结束值不存在超%sMB的测试场景"%(Animalm.kPI))
-        
-        return(self.readPath,self.writePath,Animalm.starNumlist,Animalm.endNumlist,Animalm.maxNumlist,Animalm.test_Result_status)
+        Animalm.divide_Time_list.append('无')
+        return(self.readPath,self.writePath,Animalm.starNumlist,Animalm.endNumlist,Animalm.maxNumlist,Animalm.test_Result_status,Animalm.divide_Time_list)
         
     # @CallingCounter
     def write_to_time(self):
         Animalm.sheetcount +=1
-        # print("sheet名称：%s 和被调用次数 %d"%(self.name,sheetCount))
-        # print(Animalm.sheetNameList)
         return(Animalm.sheetNameList)
 # 自定义的内存error创建excel内容和数据
 def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time):
@@ -288,7 +300,7 @@ def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time
     for sheetindex in range(len(sheetnamelist)):
         index = 0 
 
-        with open(KeyType.configJsonPath) as c:
+        with open(KeyType.configJsonPath,'r',encoding='UTF-8') as c:
             config = json.load(c)
             for d in (config.keys()):
                 if d != "Output_Path" and d != "Valgrind_File" and d != "WDX_Output_Path":
@@ -368,9 +380,18 @@ def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time
     workbook.close() 
 
 # 自定义生成汇总Excel表格（已稳定性结果为模板）读已知文档
-def readExcel(data_wdx_path,sheet_name,startTimeyear,startTimehour,endTimeyear,endTimehour,dataPath,name_data,data_startNum,data_endNum,data_maxNum,test_Result,effective_running_time,error_running_time):
+def readExcel(data_wdx_path,sheet_name,startTimeyear,startTimehour,endTimeyear,endTimehour,dataPath,name_data,data_startNum,data_endNum,data_maxNum,test_Result,effective_running_time,timestamp,error_running_time,divide_Time_list):
     oldwb = openpyxl.load_workbook(data_wdx_path)
     oldws = oldwb[sheet_name]
+    # 添加备注信息（超1000-1024之间的保持耗时）
+    for i in range(1,len(divide_Time_list)+1):
+        datatest = (divide_Time_list[i-1])
+        oldws.cell(row = i + 4,column = 22).value = datatest
+        # oldws.cell(row = i + 4,column = 22).value = datatest[:-1]
+    # 添加运行时间
+    for i in range(1,len(effective_running_time)+1):
+        datatime = effective_running_time[i-1]
+        oldws.cell(row = i + 4,column = 23).value = datatime
     # 添加开始日期
     for i in range(1,len(startTimeyear)+1):
         startTime = startTimeyear[i-1]
@@ -411,14 +432,12 @@ def readExcel(data_wdx_path,sheet_name,startTimeyear,startTimehour,endTimeyear,e
     for i in range(1,len(test_Result)+1):
         datatest = test_Result[i-1]
         oldws.cell(row = i + 4,column = 34).value = datatest
-    # 添加备注运行时间
-    for i in range(1,len(effective_running_time)+1):
-        datatime = effective_running_time[i-1]
-        oldws.cell(row = i + 4,column = 36).value = datatime
-    
-    
+    # 添加备注信息（超1G达到时间 和 第一次超1G的时间戳）
+    for i in range(1,len(error_running_time)+1):
+        datatest = (error_running_time[i-1])
+        oldws.cell(row = i + 4,column = 36).value = datatest[:-1]
 
-
+    
 
     oldwb.save(data_wdx_path)
 
@@ -543,11 +562,11 @@ if __name__ == '__main__':
     effective_running_time = []
     timestamp = ()
     error_running_time = ()
-
+    divide_Time_list = [] 
 
 
     # 读取json 配置文件路径
-    with open(KeyType.configJsonPath) as c:
+    with open(KeyType.configJsonPath,'r',encoding='UTF-8') as c:
         config = json.load(c)
         writeFileName = config['Output_Path']
         writeWdxFielName = config['WDX_Output_Path']
@@ -581,11 +600,12 @@ if __name__ == '__main__':
                         data_setupFilePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),data_setupFileName).replace("\\",'/')
                         data_setupFP.append(data_setupFilePath)
                         print('==============================start==============================')
-
+                        print(data_name)
+                        print(data_setupFilePath)
                         persion = Animalm(data_name,data_startTime,data_endTime,data_setupFilePath,config['Output_Path'],config['Valgrind_File'])
                         persion.check_tmpLine()
                         effective_running_time,timestamp,error_running_time = persion.check_memoryTime()
-                        readPath,writePath,data_startNum,data_endNum,data_maxNum,ok_or_ng = persion.check_memorylog()
+                        readPath,writePath,data_startNum,data_endNum,data_maxNum,ok_or_ng,divide_Time_list = persion.check_memorylog()
                         namelist = persion.write_to_time()
                         print('出现问题的最终名单：%s'%namelist)
                         # print(timestamp)
@@ -601,7 +621,7 @@ if __name__ == '__main__':
                 # print("不存在Output_Path和Valgrind_File文件夹")
     write_to_excel(namelist,readPath,writePath,timestamp,error_running_time)
     
-    readExcel(writeWdxFielPath,wdx_sheet_name,start_time_data_year,start_time_data_hour,end_time_data_year,end_time_data_hour,data_setupFP,name_data,data_startNum,data_endNum,data_maxNum,ok_or_ng,effective_running_time,error_running_time)
+    readExcel(writeWdxFielPath,wdx_sheet_name,start_time_data_year,start_time_data_hour,end_time_data_year,end_time_data_hour,data_setupFP,name_data,data_startNum,data_endNum,data_maxNum,ok_or_ng,effective_running_time,timestamp,error_running_time,divide_Time_list)
     # old_excel = ExcelData(writeWdxFielPath,wdx_sheet_name)
     # rownum = old_excel.readRowValues()
     # print(rownum)
