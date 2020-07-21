@@ -1,6 +1,6 @@
 {
 	"personne1":{
-		"name":"sunce",
+		"name":"孙策",
 		"project":"SOP1.5",
 		"grade":{
 			"startTime":"2020/5/9 16:48:47",
@@ -9,7 +9,7 @@
 				}
 			},
 	"personne2":{
-		"name":"shangly",
+		"name":"商凌云",
 		"project":"SOP1.5",
 		"grade":{
 			"startTime":"2020/5/8 17:52:54",
@@ -18,7 +18,7 @@
 				}
 			},
 	"personne3":{
-		"name":"wangj",
+		"name":"杨静",
 		"project":"SOP1.5",
 		"grade":{
 			"startTime":"2020/5/8 18:09:15",
@@ -27,7 +27,7 @@
 				}
 			},
 	"personne4":{
-		"name":"gaohy",
+		"name":"高鸿宇",
 		"project":"SOP1.5",
 		"grade":{
 			"startTime":"2020/3/27 15:08:02",
@@ -36,7 +36,7 @@
 				}
 			},
 	"personne5":{
-		"name":"wujin",
+		"name":"吴晶",
 		"project":"SOP1.5",
 		"grade":{
 			"startTime":"2020/3/30 17:56:55",
@@ -45,7 +45,7 @@
 				}
 			},
 	"personne6":{
-		"name":"xuzhongjin",
+		"name":"许重金",
 		"project":"SOP1.5",
 		"grade":{
 			"startTime":"2020/5/9 18:48:48",
@@ -54,7 +54,7 @@
 				}
 			},
 	"personne7":{
-		"name":"xuyj",
+		"name":"徐英君",
 		"project":"SOP1.5",
 		"grade":{
 			"startTime":"2020/1/11 13:34:52",
@@ -63,7 +63,7 @@
 				}
 			},
 	"personne8":{
-		"name":"zhaotianjun",
+		"name":"赵天军",
 		"project":"SOP1",
 		"grade":{
 			"startTime":"2020/1/11 13:34:52",
@@ -72,7 +72,7 @@
 				}
 			},
 	"personne9":{
-	"name":"xuzhongjinb",
+	"name":"史贺",
 	"project":"SOP1_FBU",
 	"grade":{
 		"startTime":"2020/5/15 20:11:27",
@@ -82,5 +82,9 @@
 		},
 	"Output_Path":"CNS3MemoryNew.xls",
 	"Valgrind_File":"Valgrind_File",
-	"WDX_Output_Path":"CNS3.0_ST_Checklist_WDXTest_SOP1&SOP1.5.xlsx"
+	"WDX_Output_Path":"CNS3.0_ST_Checklist_WDXTest_SOP1&SOP1.5.xlsx",
+	"MEMkPI":"1024",
+	"SecondaryMaximum":"1000",         
+	"DivideTheValue":"300",
+	"DivideTheTime":"60"
 }
