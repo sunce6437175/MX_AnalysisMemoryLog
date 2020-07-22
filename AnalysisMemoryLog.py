@@ -28,14 +28,14 @@ class KeyType:
 
 class Animalm:
 
-    def __init__(self,name,startTime,finishTime,readPath,writePath,exclPath,kPI,secondaryMaximum,divide_The_Value,divide_The_Time):
+    def __init__(self,name,startTime,finishTime,readPath,writePath,exclPath,KPI,secondaryMaximum,divide_The_Value,divide_The_Time):
         self.name = name
         self.startTime = startTime
         self.finishTime = finishTime
         self.readPath = readPath
         self.writePath = writePath
         self.exclPath = exclPath
-        self.KPI1 = kPI
+        self.KPI = KPI
         self.secondaryMaximum = secondaryMaximum
         self.divide_The_Value = divide_The_Value
         self.divide_The_Time = divide_The_Time
@@ -116,7 +116,7 @@ class Animalm:
                         b = a[5]
 
                         # tempList.append(int(b[:-1]))
-                        if int(b[:-1]) == int(self.KPI1):
+                        if int(b[:-1]) == int(self.KPI):
                             surpassDay = str((a[0]).strip('['))
                             surpassHour = (a[1])
                             surpassStr = (surpassDay + ' '+ surpassHour).rsplit(']')
@@ -125,12 +125,12 @@ class Animalm:
                             # print('---------------------------')
                             # print(a[0] + ' ' +a[1])
                             # print('---------------------------')
-                            Animalm.timestamp.append("开始超过 %dMB 的时间戳为 %s"%(int(self.KPI1),a[0] + ' ' + a[1]))
+                            Animalm.timestamp.append("开始超过 %dMB 的时间戳为 %s"%(int(self.KPI),a[0] + ' ' + a[1]))
                             # print(Animalm.timestamp)
                             surpassTimeS = ((vSt - surpassTime).seconds)/3600
                             # print("导航放置 %.2f 小时到达 %s MB"%(surpassTimeS,self.kPI))
                             print("超过%dMB的时间戳为%s/导航放置%.2f小时到达%dMB"%(1024,a[0] + ' ' +a[1],surpassTimeS,10245)) 
-                            Animalm.error_running_time.append("超过%dMB的时间戳为%s/导航放置%.2f小时到达%dMB"%(self.kPI1,a[0] + ' ' +a[1],surpassTimeS,self.kPI1))
+                            Animalm.error_running_time.append("超过%dMB的时间戳为%s/导航放置%.2f小时到达%dMB"%(self.KPI,a[0] + ' ' +a[1],surpassTimeS,self.KPI))
                             # print(Animalm.error_running_time)
                             break
                         else:
@@ -197,7 +197,7 @@ class Animalm:
         maxNum = '最大内存值: ' + str(max(tempList)) + ' MB'
 
         # 实现场景1：判断峰值或结束值是已超1024MB
-        if mNum >= int(self.KPI1) and eNum >= int(self.KPI1):
+        if mNum >= int(self.KPI) and eNum >= int(self.KPI):
             print("实现场景1：判断峰值和结束已超1024MB")
             self.write_to_time()
             Animalm.sheetNameList.append(self.name)
@@ -219,7 +219,7 @@ class Animalm:
                 print("起始结束行位置错误")
 
         # 实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥60s，后期改为可配置）
-        elif int(self.secondaryMaximum) <= mNum < int(self.KPI1) or int(self.secondaryMaximum) <= eNum < int(self.KPI1) :
+        elif int(self.secondaryMaximum) <= mNum < int(self.KPI) or int(self.secondaryMaximum) <= eNum < int(self.KPI) :
             if stmpLine <= ftmpLine and ftmpLine > stmpLine:
                 with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
                     i = 0
@@ -231,7 +231,7 @@ class Animalm:
                             sb = sa[5]
                             stempNumOneT = int(sb[:-1])
                             # 判断范围在1000 - 1024之间的时间和信息   方法：不连续，用“1”来间隔
-                            if stempNumOneT >= int(self.secondaryMaximum) and stempNumOneT < int(self.kPI1):
+                            if stempNumOneT >= int(self.secondaryMaximum) and stempNumOneT < int(self.KPI):
                                 # 加入所在目标行位置
                                 sa.append(i+1)
                                 stempList.append(sa)
@@ -252,7 +252,7 @@ class Animalm:
                         print('超过在1000 - 1024之间的连续时间：%ds'%b)
                         if b >= int(self.divide_The_Time) :
                             Animalm.divide_Time_list.append("超过在1000 - 1024之间的连续时间：%ds'"%b)
-                            print("实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥%ds）"%self.divide_The_Time)
+                            print("实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥%ds）"%int(self.divide_The_Time))
                             self.write_to_time()
                             Animalm.sheetNameList.append(self.name)
                             Animalm.test_Result = 'NG'
@@ -282,7 +282,7 @@ class Animalm:
         else:
             Animalm.test_Result = 'OK'
             Animalm.test_Result_status.append(Animalm.test_Result)   
-            print("实现场景4：本次内存峰值和结束值不存在超%sMB的测试场景"%(self.KPI1))
+            print("实现场景4：本次内存峰值和结束值不存在超%sMB的测试场景"%(self.KPI))
         Animalm.divide_Time_list.append('无')
         return(self.readPath,self.writePath,Animalm.starNumlist,Animalm.endNumlist,Animalm.maxNumlist,Animalm.test_Result_status,Animalm.divide_Time_list)
         
@@ -310,7 +310,7 @@ def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time
         with open(KeyType.configJsonPath,'r',encoding='UTF-8') as c:
             config = json.load(c)
             for d in (config.keys()):
-                if d != "Output_Path" and d != "Valgrind_File" and d != "WDX_Output_Path":
+                if d != "Output_Path" and d != "Valgrind_File" and d != "WDX_Output_Path" and d != "MEMkPI" and d != "SecondaryMaximum" and d != "DivideTheValue" and d != "DivideTheTime":
                     data_perison = config.get(d)
                     for item in data_perison.keys():
                         if item == "grade":
@@ -577,7 +577,7 @@ if __name__ == '__main__':
         writeFileName = config['Output_Path']
         writeWdxFielName = config['WDX_Output_Path']
         writeWdxFielPath = os.path.join(os.path.abspath(os.path.dirname(__file__)),writeWdxFielName).replace('\\','/')
-        KPI = int(config['MEMkPI'])
+        MEMKPI = int(config['MEMkPI'])
         secondaryMaximum = config['SecondaryMaximum']
         divide_The_Value = config['DivideTheValue']
         divide_The_Time = config['DivideTheTime']
@@ -588,7 +588,7 @@ if __name__ == '__main__':
             #结果False 就创建文件夹 
             os.makedirs(config['Output_Path'])
         for d in (config.keys()):
-            if d != "Output_Path" and d != "Valgrind_File" and d != "WDX_Output_Path":
+            if d != "Output_Path" and d != "Valgrind_File" and d != "WDX_Output_Path" and d != "MEMkPI" and d != "SecondaryMaximum" and d != "DivideTheValue" and d != "DivideTheTime":
                 data_perison = config.get(d)
                 for item in data_perison.keys():
                     if item == "grade":
@@ -610,7 +610,7 @@ if __name__ == '__main__':
                         print('==============================start==============================')
                         print(data_name)
                         print(data_setupFilePath)
-                        persion = Animalm(data_name,data_startTime,data_endTime,data_setupFilePath,writeFileName,config['Valgrind_File'],KPI,config['SecondaryMaximum'],config['DivideTheValue'],config['DivideTheTime'])
+                        persion = Animalm(data_name,data_startTime,data_endTime,data_setupFilePath,writeFileName,config['Valgrind_File'],MEMKPI,config['SecondaryMaximum'],config['DivideTheValue'],config['DivideTheTime'])
                         persion.check_tmpLine()
                         effective_running_time,timestamp,error_running_time = persion.check_memoryTime()
                         readPath,writePath,data_startNum,data_endNum,data_maxNum,ok_or_ng,divide_Time_list = persion.check_memorylog()
