@@ -1,15 +1,15 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
-# WDXStability report 
+# WDXStability report import
 from __future__ import print_function
-import os
+import os, mimetypes
 import datetime
 import json
 import time
 import xlsxwriter
 import openpyxl
-# Send txt&image
+# Send txt&image import
 import smtplib,time
 import datetime
 import schedule
@@ -17,6 +17,8 @@ from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
+from email.mime.base import MIMEBase
+from email.mime.application import MIMEApplication
 
 # 配置参数路径class
 class KeyType:
@@ -32,7 +34,7 @@ class KeyType:
     configJsonPath = os.path.join(os.path.abspath(os.path.dirname(__file__)),configJsonName).replace("\\",'/')
 
 class Animalm:
-    def __init__(self,name,startTime,finishTime,readPath,writePath,exclPath,KPI,secondaryMaximum,divide_The_Value,divide_The_Time):
+    def __init__(self,name,startTime,finishTime,readPath,writePath,exclPath,KPI,secondaryMaximum,divide_The_Value,divide_The_Time,pState):
         self.name = name
         self.startTime = startTime
         self.finishTime = finishTime
@@ -43,6 +45,7 @@ class Animalm:
         self.secondaryMaximum = secondaryMaximum
         self.divide_The_Value = divide_The_Value
         self.divide_The_Time = divide_The_Time
+        self.pState = pState
 
     startLineNum = 0    # 开始行数
     finishLineNum = 0   # 结束行数
@@ -189,9 +192,11 @@ class Animalm:
             print("实现场景1：判断峰值和结束已超1024MB")
             self.write_to_time()
             Animalm.sheetNameList.append(self.name)
-            Animalm.test_Result = 'NG'
-            Animalm.test_Result_status.append(Animalm.test_Result) 
+            
             Animalm.error_running_time.append("超过%dMB的时间戳为%s/导航放置%.2f小时到达%dMB"%(self.KPI,a[0] + ' ' +a[1],Animalm.surpassTimeS,self.KPI))
+            if self.pState == 'normal':
+                Animalm.test_Result = 'NG'
+                Animalm.test_Result_status.append(Animalm.test_Result) 
             # self.check_memoryTime()
             # 取出全部数据生成Excel sheet    
             if stmpLine <= ftmpLine and ftmpLine > stmpLine:
@@ -245,8 +250,11 @@ class Animalm:
                             print("实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥%ds）"%int(self.divide_The_Time))
                             self.write_to_time()
                             Animalm.sheetNameList.append(self.name)
-                            Animalm.test_Result = 'NG'
-                            Animalm.test_Result_status.append(Animalm.test_Result)   
+                            # Animalm.test_Result = 'NG'
+                            
+                            if self.pState == 'normal':
+                                Animalm.test_Result = 'NG'
+                                Animalm.test_Result_status.append(Animalm.test_Result) 
 
                         else:
                             print("未实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持未≥%ds "%self.divide_The_Time)
@@ -256,8 +264,10 @@ class Animalm:
             print("实现场景3：内存一直未超1000MB,但开始与结束的实际落差值在%sMB,已超过KPI: %s MB"%((int(eNum) - int(sNum)),self.divide_The_Value))
             self.write_to_time()
             Animalm.sheetNameList.append(self.name)
-            Animalm.test_Result = 'NG'
-            Animalm.test_Result_status.append(Animalm.test_Result)  
+            # Animalm.test_Result = 'NG'
+            if self.pState == 'normal' :
+                Animalm.test_Result = 'NG'
+                Animalm.test_Result_status.append(Animalm.test_Result)  
             Animalm.error_running_time.append("内存一直未超1000MB,但开始与结束的实际落差值在%sMB,已超过KPI:%sMB"%((int(eNum) - int(sNum)),self.divide_The_Value))
             # 取出存在落差的全部数据创新sheet,并创建柱状图
             if stmpLine <= ftmpLine and ftmpLine > stmpLine:
@@ -267,10 +277,19 @@ class Animalm:
                         dtvList.append(xline)
         # 实现场景4：判断峰值或结束值是未超1024MB，且未长时间1000MB和未超开始结束落差值
         else:
-            Animalm.test_Result = 'OK'
-            Animalm.test_Result_status.append(Animalm.test_Result) 
+            # Animalm.test_Result = 'OK'
             # Animalm.divide_Time_list.append('无')
             Animalm.error_running_time.append('无')
+            if self.pState == 'normal':
+                Animalm.test_Result = 'OK'
+                Animalm.test_Result_status.append(Animalm.test_Result) 
+            elif self.pState == 'NA':
+                Animalm.test_Result = 'NA'
+                Animalm.test_Result_status.append(Animalm.test_Result)
+            elif self.pState == '第三方NG':
+                Animalm.test_Result = '第三方NG'
+                Animalm.test_Result_status.append(Animalm.test_Result)
+
             print("实现场景4：本次内存峰值和结束值不存在超%sMB的测试场景"%(self.KPI))
         
         return(self.readPath,self.writePath,Animalm.starNumlist,Animalm.endNumlist,Animalm.maxNumlist,Animalm.test_Result_status,Animalm.divide_Time_list)
@@ -373,7 +392,6 @@ def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time
                                 # 放置位置
                                 workbooksheet.insert_chart('E2',chart_col,{'x_offset':25,'y_offset':10})
     workbook.close() 
-
 # 自定义生成汇总Excel表格（已稳定性结果为模板）读已知文档
 def readExcel(data_wdx_path,sheet_name,startTimeyear,startTimehour,endTimeyear,endTimehour,dataPath,name_data,data_startNum,data_endNum,\
     data_maxNum,test_Result,effective_running_time,timestamp,error_running_time,divide_Time_list):
@@ -434,6 +452,86 @@ def readExcel(data_wdx_path,sheet_name,startTimeyear,startTimehour,endTimeyear,e
 
     
     oldwb.save(data_wdx_path)
+# 自动邮件管理类（去除图片加入附件）
+class EmailManager:
+    def __init__(self,mailPass,mailpassCc,mailMsg,mailTitle,filesPath):
+        self.mailPass = mailPass
+        self.mailpassCc = mailpassCc
+        self.mailMsg = mailMsg
+        self.mailTitle = mailTitle
+        self.filesPath = filesPath
+
+    def sendEmail(self):
+        # 使用的邮箱的SMTP服务器地址
+        mail_host = "192.168.2.23"
+        # 邮箱的地址
+        mail_from = "sunc@meixing.com"
+        # 发送到的地址
+        mail_pass = self.mailPass
+        # 发送到的抄送地址
+        mail_passCc = self.mailpassCc
+        # 发送的信息
+        mail_msg = self.mailMsg
+        # 发送的邮件标题
+        mail_title = self.mailTitle
+        # 图片地址
+        # pic_path = self.picPath
+        # 附件名称
+        files_Path = self.filesPath
+
+        #采用related定义内嵌资源的邮件体
+        msg = MIMEMultipart('related') 
+        msg['Subject'] = Header(mail_title,'utf-8')  
+        msg['From'] = mail_from  
+        msg['To'] = mail_pass
+        msg['Cc'] = mail_passCc
+
+        msg.attach(MIMEText(mail_msg, 'html', 'utf-8'))
+        #发送带有Excel附件
+        for filepath in files_Path:
+            ctype, encoding = mimetypes.guess_type(filepath)
+            if ctype is None or encoding is not None: 
+                ctype = "application/octet-stream"
+            maintype, subtype = ctype.split("/", 1)
+            if maintype in['image','audio']:
+                add_attachment(filepath)
+            else:
+                baseName = os.path.basename(filepath) 
+                att = MIMEApplication(open(filepath,'rb').read())
+                att.add_header('Content-Disposition', 'attachment', filename=baseName)
+                msg.attach(att)
+                print(filepath, 'added')
+        # 指定图片为当前目录
+        # fp = open(pic_path, 'rb')
+        # msgImage = MIMEImage(fp.read())
+        # fp.close()
+
+        # 定义图片 ID，在 HTML 文本中引用
+        # msgImage.add_header('Content-ID', '<image1>')
+        # msg.attach(msgImage)
+
+        smtp = smtplib.SMTP()
+        # 使用标准的25端口连接SMTP服务器时，使用的是明文传输，发送邮件的整个过程可能会被窃听
+        smtp.connect(mail_host,25)
+        smtp.sendmail(msg['From'],msg['To'].split(',') + msg['Cc'].split(','),msg.as_string())
+        smtp.quit()
+
+def send_mail_time(manager):
+    # schedule.every(1).minutes.do(manager.sendEmail)  
+    schedule.every().monday.at("10:01").do(manager.sendEmail)
+    schedule.every().tuesday.at("10:01").do(manager.sendEmail)
+    schedule.every().wednesday.at("10:01").do(manager.sendEmail)
+    schedule.every().thursday.at("20:45").do(manager.sendEmail)
+    schedule.every().friday.at("10:01").do(manager.sendEmail)
+    # schedule.every().saturday.at("11:00").do(manager.sendEmail)
+    # schedule.every().sunday.at("11:00").do(manager.sendEmail)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+        print("邮件发送成功")
+        # schedule.quit()
+
+    
 
 if __name__ == '__main__':
     wdx_sheet_name = '常规版本稳定性测试结果'
@@ -452,12 +550,25 @@ if __name__ == '__main__':
     data_maxNum = []
 
     ok_or_ng = []     # 测试结果状态收集
+    mail_path = []
+    placingState = []
 
     effective_running_time = []
     timestamp = ()
     error_running_time = ()
     divide_Time_list = [] 
+    Files=[]
+    # mailPass = "gaohy@meixing.com"
+    # mailpassCc = "sunc@meixing.com"
+    mail_Pass = []
+    mail_passCc = []
+    mail_Pass_str = ''
+    mail_passCc_str = ''
 
+    mailTitle = "【CNS3.0_SOP1&SOP1.5】稳定性log分析及填写报告-反馈"
+    mailMsg ='''
+    <p><b>当天的稳定性log分析及填写报告已生成，请参看附件！</b></p>
+    '''
 
     # 读取json 配置文件路径
     with open(KeyType.configJsonPath,'r',encoding='UTF-8') as c:
@@ -469,6 +580,14 @@ if __name__ == '__main__':
         secondaryMaximum = config['SecondaryMaximum']
         divide_The_Value = config['DivideTheValue']
         divide_The_Time = config['DivideTheTime']
+
+        Files.append(writeFileName)
+        Files.append(writeWdxFielName)
+        mail_passCc.append(config['mailpassCc']['lead1'])
+        mail_passCc.append(config['mailpassCc']['lead2'])
+        mail_passCc.append(config['mailpassCc']['lead3'])
+        mail_passCc_str = ','.join(mail_passCc)
+
     #判断 Output_Path 文件夹是否存在
         if os.path.exists(config['Output_Path']):
             print("Output_Path 已存在")
@@ -484,6 +603,8 @@ if __name__ == '__main__':
                         data_grade = data_perison["grade"]
                         data_name = data_perison["name"]
                         name_data.append(data_name)
+                        mail_path = data_perison["mailPass"]
+                        mail_Pass.append(mail_path)
 
                         data_startTime = data_grade['startTime']
                         start_time_data_year.append(data_startTime.split()[0])
@@ -496,17 +617,20 @@ if __name__ == '__main__':
                         data_setupFileName = data_grade['setupFilePath']
                         data_setupFilePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),data_setupFileName).replace("\\",'/')
                         data_setupFP.append(data_setupFilePath)
-                        print('==============================start==============================')
-                        print(data_name)
-                        print(data_setupFilePath)
-                        persion = Animalm(data_name,data_startTime,data_endTime,data_setupFilePath,writeFileName,config['Valgrind_File'],MEMKPI,config['SecondaryMaximum'],config['DivideTheValue'],config['DivideTheTime'])
+
+                        placingState = data_grade['placingState']
+                        # print('==============================start==============================')
+                        # print(data_name)
+                        # print(data_setupFilePath)
+                        # print(placingState)
+                        persion = Animalm(data_name,data_startTime,data_endTime,data_setupFilePath,writeFileName,config['Valgrind_File'],MEMKPI \
+                            ,config['SecondaryMaximum'],config['DivideTheValue'],config['DivideTheTime'],placingState)
                         persion.check_tmpLine()
                         effective_running_time,timestamp,error_running_time = persion.check_memoryTime()
                         readPath,writePath,data_startNum,data_endNum,data_maxNum,ok_or_ng,divide_Time_list = persion.check_memorylog()
                         namelist = persion.write_to_time()
-                        print('出现问题的最终名单：%s'%namelist)
-
-                        print('==============================end==============================')
+                        # print('出现问题的最终名单：%s'%namelist)
+                        # print('==============================end==============================')
                     else:
                         pass
                         # print("JSON文件设置项配置错误")  
@@ -514,9 +638,12 @@ if __name__ == '__main__':
                 pass
                 # print("不存在Output_Path和Valgrind_File文件夹")
     write_to_excel(namelist,readPath,writePath,timestamp,error_running_time)
-    
     readExcel(writeWdxFielPath,wdx_sheet_name,start_time_data_year,start_time_data_hour,end_time_data_year,end_time_data_hour\
         ,data_setupFP,name_data,data_startNum,data_endNum,data_maxNum,ok_or_ng,effective_running_time,timestamp,error_running_time,divide_Time_list)
+
+    mail_Pass_str = ','.join(mail_Pass)
+    manager = EmailManager(mail_Pass_str,mail_passCc_str,mailMsg,mailTitle,Files)
+    send_mail_time(manager)
 
 
 
