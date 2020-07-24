@@ -28,8 +28,6 @@ class KeyType:
     setupFileName = "SETUP.txt"
     # 最新批量json配置项
     configJsonName = "config/config.json"
-    # 原有setup配置项地址获取(当前工作路径不采用,可考虑删除)
-    # setupFilePath = os.path.join(os.getcwd(),setupFileName).replace("\\",'/')
     # 最新批量json配置项地址获取(获取当前文件的绝对路径)
     configJsonPath = os.path.join(os.path.abspath(os.path.dirname(__file__)),configJsonName).replace("\\",'/')
 
@@ -49,10 +47,7 @@ class Animalm:
 
     startLineNum = 0    # 开始行数
     finishLineNum = 0   # 结束行数
-    # kPI = 1024                    # 内存KPI 阀值
-    # secondaryMaximum = 1000      # 次峰值范围值
-    # divide_The_Value = 300      # 开始与结束的落差 阀值
-    # divide_The_Time = 60      # 保持时间≥60s 阈值
+
     sheetcount = 0
     sheetNameList = []          # 保汇总sheet姓名
     starNumlist = []
@@ -86,8 +81,8 @@ class Animalm:
                         continue
                     else:
                         Animalm.finishLineNum = tempLienNum
-        # print(Animalm.startLineNum,Animalm.finishLineNum)
-        return(Animalm.startLineNum,Animalm.startLineNum)
+
+        return(Animalm.startLineNum,Animalm.finishLineNum)
 
     #判断有效运行时间
     def check_memoryTime(self):
@@ -124,15 +119,12 @@ class Animalm:
                             surpassTime = datetime.datetime.strptime((surpassStr[0]).replace("/",'-'),"%Y-%m-%d %H:%M:%S")
                             # print("开始超过 %sMB 的时间戳为 %s"%(1024,a[0] + a[1]))
                             Animalm.timestamp.append("开始超过 %dMB 的时间戳为 %s"%(self.KPI,a[0] + ' ' + a[1]))
-        
                             Animalm.surpassTimeS = ((vSt - surpassTime).seconds)/3600
                             # print("导航放置 %.2f 小时到达 %s MB"%(surpassTimeS,self.kPI))
                             # Animalm.error_running_time.append("超过%dMB的时间戳为%s/导航放置%.2f小时到达%dMB"%(self.KPI,a[0] + ' ' +a[1],surpassTimeS,self.KPI))
-
                             break
                         else:
                             pass
-                        
                     else:
                         pass
                     tempNum = tempNum + 1
@@ -192,7 +184,6 @@ class Animalm:
             print("实现场景1：判断峰值和结束已超1024MB")
             self.write_to_time()
             Animalm.sheetNameList.append(self.name)
-            
             Animalm.error_running_time.append("超过%dMB的时间戳为%s/导航放置%.2f小时到达%dMB"%(self.KPI,a[0] + ' ' +a[1],Animalm.surpassTimeS,self.KPI))
             if self.pState == 'normal':
                 Animalm.test_Result = 'NG'
@@ -250,7 +241,6 @@ class Animalm:
                             print("实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥%ds）"%int(self.divide_The_Time))
                             self.write_to_time()
                             Animalm.sheetNameList.append(self.name)
-                            # Animalm.test_Result = 'NG'
                             
                             if self.pState == 'normal':
                                 Animalm.test_Result = 'NG'
@@ -264,7 +254,6 @@ class Animalm:
             print("实现场景3：内存一直未超1000MB,但开始与结束的实际落差值在%sMB,已超过KPI: %s MB"%((int(eNum) - int(sNum)),self.divide_The_Value))
             self.write_to_time()
             Animalm.sheetNameList.append(self.name)
-            # Animalm.test_Result = 'NG'
             if self.pState == 'normal' :
                 Animalm.test_Result = 'NG'
                 Animalm.test_Result_status.append(Animalm.test_Result)  
@@ -293,7 +282,7 @@ class Animalm:
             print("实现场景4：本次内存峰值和结束值不存在超%sMB的测试场景"%(self.KPI))
         
         return(self.readPath,self.writePath,Animalm.starNumlist,Animalm.endNumlist,Animalm.maxNumlist,Animalm.test_Result_status,Animalm.divide_Time_list)
-
+    # 创建出现问题sheet数量
     def write_to_time(self):
         Animalm.sheetcount +=1
         return(Animalm.sheetNameList)
@@ -371,7 +360,6 @@ def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time
                                 valuesLen = len(flist)
     
                                 chart_col = workbook.add_chart({'type':'line'})
-                                
                                 chart_col.add_series(
                                     {
                                     # 内存数据名称和单位
@@ -392,6 +380,7 @@ def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time
                                 # 放置位置
                                 workbooksheet.insert_chart('E2',chart_col,{'x_offset':25,'y_offset':10})
     workbook.close() 
+
 # 自定义生成汇总Excel表格（已稳定性结果为模板）读已知文档
 def readExcel(data_wdx_path,sheet_name,startTimeyear,startTimehour,endTimeyear,endTimehour,dataPath,name_data,data_startNum,data_endNum,\
     data_maxNum,test_Result,effective_running_time,timestamp,error_running_time,divide_Time_list):
@@ -450,8 +439,8 @@ def readExcel(data_wdx_path,sheet_name,startTimeyear,startTimehour,endTimeyear,e
         datatest = (error_running_time[i-1])
         oldws.cell(row = i + 4,column = 36).value = datatest[:-1]
 
-    
     oldwb.save(data_wdx_path)
+
 # 自动邮件管理类（去除图片加入附件）
 class EmailManager:
     def __init__(self,mailPass,mailpassCc,mailMsg,mailTitle,filesPath):
@@ -487,7 +476,7 @@ class EmailManager:
         msg['Cc'] = mail_passCc
 
         msg.attach(MIMEText(mail_msg, 'html', 'utf-8'))
-        #发送带有Excel附件
+        #发送带有多个Excel附件
         for filepath in files_Path:
             ctype, encoding = mimetypes.guess_type(filepath)
             if ctype is None or encoding is not None: 
@@ -515,25 +504,25 @@ class EmailManager:
         smtp.connect(mail_host,25)
         smtp.sendmail(msg['From'],msg['To'].split(',') + msg['Cc'].split(','),msg.as_string())
         smtp.quit()
-
+# 定时发送结果邮件
 def send_mail_time(manager):
     # schedule.every(1).minutes.do(manager.sendEmail)  
     schedule.every().monday.at("10:01").do(manager.sendEmail)
     schedule.every().tuesday.at("10:01").do(manager.sendEmail)
     schedule.every().wednesday.at("10:01").do(manager.sendEmail)
     schedule.every().thursday.at("20:45").do(manager.sendEmail)
-    schedule.every().friday.at("10:01").do(manager.sendEmail)
+    schedule.every().friday.at("16:08").do(manager.sendEmail)
     # schedule.every().saturday.at("11:00").do(manager.sendEmail)
     # schedule.every().sunday.at("11:00").do(manager.sendEmail)
     while True:
         schedule.run_pending()
         time.sleep(1)
-        print("邮件发送成功")
-        # schedule.quit()
+        print("等待%d"%(time.time()))
+        # schedule.q
 
     
-
 if __name__ == '__main__':
+
     wdx_sheet_name = '常规版本稳定性测试结果'
     namelist = []    # sheet页名称汇总
     readPath = ''    # 读取配置路径
@@ -549,27 +538,28 @@ if __name__ == '__main__':
     data_endNum = []
     data_maxNum = []
 
-    ok_or_ng = []     # 测试结果状态收集
-    mail_path = []
-    placingState = []
+    ok_or_ng = []                              # 测试结果状态收集
+    mail_path = []                            # 放置测试人员邮件收集
+    placingState = []                        # 测试结果状态收集
 
     effective_running_time = []
     timestamp = ()
     error_running_time = ()
     divide_Time_list = [] 
-    Files=[]
-    # mailPass = "gaohy@meixing.com"
-    # mailpassCc = "sunc@meixing.com"
-    mail_Pass = []
-    mail_passCc = []
-    mail_Pass_str = ''
-    mail_passCc_str = ''
+    Files=[]                             # 测试结果附件名称汇总
+
+    mail_Pass = []                     # 不包含的抄送的全部收件人员list （由全员发送改为只针对存在问题的人员发送）
+    mail_Error_Pass = []              # 指定的报错的收件人
+    mail_passCc = []                 # 邮件抄送人员list
+    mail_Pass_str = ''              # 收件人员list拼接成字符串格式（由全员发送改为只针对存在问题的人员发送）
+    mail_Error_Pass_str = ''       # 指定的报错的收件人拼成字符串格式
+    mail_passCc_str = ''          # 邮件抄送人员list拼接成字符串格式
+    mail_Pass_regulator = 'sunc@meixing.com'     # 邮件收件人管理者
 
     mailTitle = "【CNS3.0_SOP1&SOP1.5】稳定性log分析及填写报告-反馈"
     mailMsg ='''
     <p><b>当天的稳定性log分析及填写报告已生成，请参看附件！</b></p>
     '''
-
     # 读取json 配置文件路径
     with open(KeyType.configJsonPath,'r',encoding='UTF-8') as c:
         config = json.load(c)
@@ -580,13 +570,14 @@ if __name__ == '__main__':
         secondaryMaximum = config['SecondaryMaximum']
         divide_The_Value = config['DivideTheValue']
         divide_The_Time = config['DivideTheTime']
-
+        # 收集邮件添附件名称
         Files.append(writeFileName)
         Files.append(writeWdxFielName)
-        mail_passCc.append(config['mailpassCc']['lead1'])
-        mail_passCc.append(config['mailpassCc']['lead2'])
-        mail_passCc.append(config['mailpassCc']['lead3'])
-        mail_passCc_str = ','.join(mail_passCc)
+        # 自动收集配置项中抄送人员名称循环加入邮件抄送人员list拼接成字符串格式
+        for mailvalues in (config['mailpassCc'].values()):
+            mail_passCc.append(mailvalues)
+        # 邮件抄送人员list拼接成字符串格式
+        # mail_passCc_str = ','.join(mail_passCc)
 
     #判断 Output_Path 文件夹是否存在
         if os.path.exists(config['Output_Path']):
@@ -641,9 +632,37 @@ if __name__ == '__main__':
     readExcel(writeWdxFielPath,wdx_sheet_name,start_time_data_year,start_time_data_hour,end_time_data_year,end_time_data_hour\
         ,data_setupFP,name_data,data_startNum,data_endNum,data_maxNum,ok_or_ng,effective_running_time,timestamp,error_running_time,divide_Time_list)
 
-    mail_Pass_str = ','.join(mail_Pass)
-    manager = EmailManager(mail_Pass_str,mail_passCc_str,mailMsg,mailTitle,Files)
-    send_mail_time(manager)
+
+    # 收件人与抄送人自动判断,判断后并发送结果
+    if namelist :
+        for d in (config.keys()):
+            if d != "Output_Path" and d != "Valgrind_File" and d != "WDX_Output_Path" and d != "MEMkPI" \
+                and d != "SecondaryMaximum" and d != "DivideTheValue" and d != "DivideTheTime" and d != "mailpassCc":
+                data_perison = config.get(d)
+                for item in data_perison.keys():
+                    if item == "grade":
+                        if data_perison["name"] in namelist:
+                            mail_Error_Pass.append(data_perison["mailPass"])
+                        else:
+                            mail_passCc.append(data_perison["mailPass"])
+
+        mail_Error_Pass_str = ','.join(mail_Error_Pass)
+        mail_passCc_str = ','.join(mail_passCc)
+        print('出现问题时的收件人地址：%s'%(mail_Error_Pass_str))
+        print('其他OK的收件人地址和抄送地址：%s'%(mail_passCc_str))
+        # manager = EmailManager(mail_Error_Pass_str,mail_passCc_str,mailMsg,mailTitle,Files)
+        # send_mail_time(manager)
+    else:
+        mail_Pass.remove(mail_Pass_regulator)
+        mail_Pass_str = ','.join(mail_Pass)
+        mail_passCc_str = ','.join(mail_passCc)
+        mail_full_pass = mail_Pass_str + mail_passCc_str
+        print('全部无问题时发送管理者收件人：%s'%(mail_Pass_regulator))
+        print('配置项中原有抄送地址+除管理者外其他收件人：%s'%(mail_full_pass))
+        # manager = EmailManager(mail_Pass_regulator,mail_full_pass,mailMsg,mailTitle,Files)
+        # send_mail_time(manager)
+
+    
 
 
 
