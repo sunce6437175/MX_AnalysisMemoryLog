@@ -13,7 +13,7 @@
 	"personne2":{
 		"name":"尚凌云",
 		"project":"SOP1.5",
-		"mailPass":"sunc@meixing.com",
+		"mailPass":"shangly@meixing.com",
 		"grade":{
 			"startTime":"2020/5/8 17:52:54",
 			"endTime":"2020/5/9 9:08:55",
@@ -22,9 +22,9 @@
 				}
 			},
 	"personne3":{
-		"name":"杨静",
+		"name":"杨婧",
 		"project":"SOP1.5",
-		"mailPass":"sunc@meixing.com",
+		"mailPass":"yangjing@meixing.com",
 		"grade":{
 			"startTime":"2020/5/8 18:09:15",
 			"endTime":"2020/5/9 9:23:57",
@@ -35,7 +35,7 @@
 	"personne4":{
 		"name":"高鸿宇",
 		"project":"SOP1.5",
-		"mailPass":"sunc@meixing.com",
+		"mailPass":"gaohy@meixing.com",
 		"grade":{
 			"startTime":"2020/3/27 15:08:02",
 			"endTime":"2020/3/30 8:52:58",
@@ -46,7 +46,7 @@
 	"personne5":{
 		"name":"吴晶",
 		"project":"SOP1.5",
-		"mailPass":"sunc@meixing.com",
+		"mailPass":"wuj@meixing.com",
 		"grade":{
 			"startTime":"2020/3/30 17:56:55",
 			"endTime":"2020/3/31 8:55:46",
@@ -57,7 +57,7 @@
 	"personne6":{
 		"name":"许重金",
 		"project":"SOP1.5",
-		"mailPass":"sunc@meixing.com",
+		"mailPass":"xuzj@meixing.com",
 		"grade":{
 			"startTime":"2020/5/9 18:48:48",
 			"endTime":"2020/5/10 16:35:06",
@@ -68,7 +68,7 @@
 	"personne7":{
 		"name":"徐英君",
 		"project":"SOP1.5",
-		"mailPass":"sunc@meixing.com",
+		"mailPass":"xuyj@meixing.com",
 		"grade":{
 			"startTime":"2020/1/11 13:34:52",
 			"endTime":"2020/1/12 23:51:07",
@@ -77,9 +77,9 @@
 				}
 			},
 	"personne8":{
-		"name":"赵天军",
+		"name":"王婧",
 		"project":"SOP1",
-		"mailPass":"sunc@meixing.com",
+		"mailPass":"wangjing@meixing.com",
 		"grade":{
 			"startTime":"2020/1/11 13:34:52",
 			"endTime":"2020/1/12 0:57:54",
@@ -90,7 +90,7 @@
 	"personne9":{
 		"name":"史贺",
 		"project":"SOP1_FBU",
-		"mailPass":"sunc@meixing.com",
+		"mailPass":"shih@meixing.com",
 		"grade":{
 			"startTime":"2020/5/15 20:11:27",
 			"endTime":"2020/5/18 8:58:55",
@@ -101,7 +101,7 @@
 	"personne10":{
 		"name":"王志卉",
 		"project":"SOP1.5",
-		"mailPass":"sunc@meixing.com",
+		"mailPass":"wangzh@meixing.com",
 		"grade":{
 			"startTime":"2020/7/16 18:33:55",
 			"endTime":"2020/7/20 8:30:48",
@@ -112,7 +112,7 @@
 	"personne11":{
 		"name":"宋艳红",
 		"project":"SOP1.5",
-		"mailPass":"sunc@meixing.com",
+		"mailPass":"songyh@meixing.com",
 		"grade":{
 			"startTime":"2020/6/24 16:59:09",
 			"endTime":"2020/6/28 8:34:39",
