@@ -9,6 +9,7 @@ import json
 import time
 import xlsxwriter
 import openpyxl
+from collections import deque
 # Send txt&image import
 import smtplib,time
 import datetime
@@ -519,10 +520,52 @@ def send_mail_time(manager):
         time.sleep(1)
         print("等待%d"%(time.time()))
         # schedule.q
+# 自动读取log中开始和结束时间
+def read_time_wirte_json():
+    keyMXNavi = '/usr/bin/MXNavi'
+    tempLienNum = 0
+    start_time = ''
+    with open(KeyType.configJsonPath,'r',encoding='UTF-8') as c:
+        config = json.load(c)
+        for timex in (config.keys()):
+            if timex != "Output_Path" and timex != "Valgrind_File" and timex != "WDX_Output_Path" and timex != "MEMkPI" \
+                and timex != "SecondaryMaximum" and timex != "DivideTheValue" and timex != "DivideTheTime" and timex != "mailpassCc":
+                data_perison = config.get(timex)
+                for item in data_perison.keys():
+                    if item == "grade":
+                        data_grade = data_perison["grade"]
+                        data_name = data_perison["name"]
+                        data_setupFileName = data_grade['setupFilePath']
+                        data_setupFilePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),data_setupFileName).replace("\\",'/')
+                        print('-------------------------------')
+                        print(data_setupFilePath)
+                        with open(data_setupFilePath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
+                            for line in read_file:
+                                if keyMXNavi in line:
+                                    # print('关键字%s在第%d行'%(keyMXNavi,tempLienNum))
+                                    # print('找到第一关键字所在行%d'%(tempLienNum))
+                                    # print('开始：%s'%line)
+                                    start_time = line.split()[0].strip('[') + ' ' + line.split()[1].strip(']')
+                                    print('开始时间：%s'%start_time)
+
+                                    break
+                                tempLienNum = tempLienNum + 1
+
+                        with open(data_setupFilePath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
+                            dq = deque(read_file)
+                            while dq :
+                                last_row = dq.pop()
+                                # print(last_row)
+                                if keyMXNavi in last_row:
+                                    # print('结束：%s'%last_row)
+                                    end_time = last_row.split()[0].strip('[') + ' ' + last_row.split()[1].strip(']')
+                                    print('结束时间：%s'%end_time)
+                                    break
+                        print('===============================')
 
     
 if __name__ == '__main__':
-
+    read_time_wirte_json()
     wdx_sheet_name = '常规版本稳定性测试结果'
     namelist = []    # sheet页名称汇总
     readPath = ''    # 读取配置路径
@@ -614,12 +657,14 @@ if __name__ == '__main__':
                         # print(data_name)
                         # print(data_setupFilePath)
                         # print(placingState)
-                        persion = Animalm(data_name,data_startTime,data_endTime,data_setupFilePath,writeFileName,config['Valgrind_File'],MEMKPI \
-                            ,config['SecondaryMaximum'],config['DivideTheValue'],config['DivideTheTime'],placingState)
-                        persion.check_tmpLine()
-                        effective_running_time,timestamp,error_running_time = persion.check_memoryTime()
-                        readPath,writePath,data_startNum,data_endNum,data_maxNum,ok_or_ng,divide_Time_list = persion.check_memorylog()
-                        namelist = persion.write_to_time()
+
+                        # persion = Animalm(data_name,data_startTime,data_endTime,data_setupFilePath,writeFileName,config['Valgrind_File'],MEMKPI \
+                        #     ,config['SecondaryMaximum'],config['DivideTheValue'],config['DivideTheTime'],placingState)
+                        # persion.check_tmpLine()
+                        # effective_running_time,timestamp,error_running_time = persion.check_memoryTime()
+                        # readPath,writePath,data_startNum,data_endNum,data_maxNum,ok_or_ng,divide_Time_list = persion.check_memorylog()
+                        # namelist = persion.write_to_time()
+
                         # print('出现问题的最终名单：%s'%namelist)
                         # print('==============================end==============================')
                     else:
@@ -628,11 +673,12 @@ if __name__ == '__main__':
             else:
                 pass
                 # print("不存在Output_Path和Valgrind_File文件夹")
-    write_to_excel(namelist,readPath,writePath,timestamp,error_running_time)
-    readExcel(writeWdxFielPath,wdx_sheet_name,start_time_data_year,start_time_data_hour,end_time_data_year,end_time_data_hour\
-        ,data_setupFP,name_data,data_startNum,data_endNum,data_maxNum,ok_or_ng,effective_running_time,timestamp,error_running_time,divide_Time_list)
 
+    # write_to_excel(namelist,readPath,writePath,timestamp,error_running_time)
+    # readExcel(writeWdxFielPath,wdx_sheet_name,start_time_data_year,start_time_data_hour,end_time_data_year,end_time_data_hour\
+    #     ,data_setupFP,name_data,data_startNum,data_endNum,data_maxNum,ok_or_ng,effective_running_time,timestamp,error_running_time,divide_Time_list)
 
+    
     # 收件人与抄送人自动判断,判断后并发送结果
     if namelist :
         for d in (config.keys()):
