@@ -21,6 +21,8 @@ from email.mime.multipart import MIMEMultipart
 from email.header import Header
 from email.mime.base import MIMEBase
 from email.mime.application import MIMEApplication
+# 获取节假日api
+
 
 # 配置参数路径class
 class KeyType:
@@ -567,15 +569,19 @@ def read_time_wirte_json():
 
 
 if __name__ == '__main__':
-    read_time_wirte_json()   # 自动读取log时间，写入新json文件并运用
+    # read_time_wirte_json()   # 自动读取log时间，写入新json文件并运用
 
-    d = datetime.datetime.now()
-    week = d.weekday() + 1
+    # d = datetime.datetime.now()
+    # week = d.weekday() + 1
 
-    # date = time.strftime('%Y%m%d', time.localtime())
+    date = time.strftime('%Y%m%d', time.localtime())
     # print(date)
-    # server_url = "http://api.goseek.cn/Tools/holiday?date="
-    # server_res = requests.get(server_url + date)
+    req = requests.get("http://api.goseek.cn/Tools/holiday?date=%s"%date)
+    # print(req)
+    req.encoding = 'utf8'
+    content = req.text
+    print(content)
+
 
     wdx_sheet_name = '常规版本稳定性测试结果'
     namelist = []    # sheet页名称汇总
@@ -705,9 +711,9 @@ if __name__ == '__main__':
         mail_passCc_str = ','.join(mail_passCc)
         print('出现问题时的收件人地址：%s'%(mail_Error_Pass_str))
         print('其他OK的收件人地址和抄送地址：%s'%(mail_passCc_str))
-        if week != 6 or week != 7:
-            manager = EmailManager(mail_Error_Pass_str,mail_passCc_str,mailMsg,mailTitle,Files)
-            manager.sendEmail()
+        # if week != 6 or week != 7:
+        #     manager = EmailManager(mail_Error_Pass_str,mail_passCc_str,mailMsg,mailTitle,Files)
+        #     manager.sendEmail()
         # send_mail_time(manager)
     else:
         mail_Pass.remove(mail_Pass_regulator)
@@ -716,9 +722,9 @@ if __name__ == '__main__':
         mail_full_pass = mail_Pass_str + mail_passCc_str
         print('全部无问题时发送管理者收件人：%s'%(mail_Pass_regulator))
         print('配置项中原有抄送地址+除管理者外其他收件人：%s'%(mail_full_pass))
-        if week != 6 or week != 7:
-            manager = EmailManager(mail_Pass_regulator,mail_full_pass,mailMsg,mailTitle,Files)
-            manager.sendEmail()
+        # if week != 6 or week != 7:
+        #     manager = EmailManager(mail_Pass_regulator,mail_full_pass,mailMsg,mailTitle,Files)
+        #     manager.sendEmail()
         # send_mail_time(manager)
 
     
