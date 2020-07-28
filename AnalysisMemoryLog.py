@@ -11,6 +11,7 @@ import xlsxwriter
 import openpyxl
 from collections import deque
 # Send txt&image import
+import requests
 import smtplib,time
 import datetime
 import schedule
@@ -26,13 +27,13 @@ class KeyType:
     # 搜索内存关键字
     deWeightTime = "top -m | grep MXNavi"
     # 原有setup配置项(当前工作路径不采用,可考虑删除)
-    setupFileName = "SETUP.txt"
-    # 最新批量json配置项
-    configJsonName = "config/config.json"
+    # setupFileName = "SETUP.txt"
+    # 最新批量json配置项 (从本地改为服务器路径)
+    configJsonName = "//192.168.2.7/BugInfo_2020/CNS3.0 Sop1.5/SOP1&1.5Valgrind_File/MX_AnalysisMemoryLog/config/config.json"
     # 最新批量json配置项地址获取(获取当前文件的绝对路径)
     configJsonPath = os.path.join(os.path.abspath(os.path.dirname(__file__)),configJsonName).replace("\\",'/')
-    # 修改添加自动拾取时间的json配置项后写入文件
-    testconfigJsonName = "config/testJson.json"
+    # 修改添加自动拾取时间的json配置项后写入文件 (从本地改为服务器路径)
+    testconfigJsonName = "//192.168.2.7/BugInfo_2020/CNS3.0 Sop1.5/SOP1&1.5Valgrind_File/MX_AnalysisMemoryLog/config/testJson.json"
     # 修改添加自动拾取时间的json配置项后写入文件路径
     testconfigJsonPath = os.path.join(os.path.abspath(os.path.dirname(__file__)),testconfigJsonName).replace("\\",'/')
 
@@ -384,6 +385,7 @@ def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time
                                 chart_col.set_style(1)
                                 # 放置位置
                                 workbooksheet.insert_chart('E2',chart_col,{'x_offset':25,'y_offset':10})
+
     workbook.close() 
 
 # 自定义生成汇总Excel表格（已稳定性结果为模板）读已知文档
@@ -566,6 +568,15 @@ def read_time_wirte_json():
 
 if __name__ == '__main__':
     read_time_wirte_json()   # 自动读取log时间，写入新json文件并运用
+
+    d = datetime.datetime.now()
+    week = d.weekday() + 1
+
+    # date = time.strftime('%Y%m%d', time.localtime())
+    # print(date)
+    # server_url = "http://api.goseek.cn/Tools/holiday?date="
+    # server_res = requests.get(server_url + date)
+
     wdx_sheet_name = '常规版本稳定性测试结果'
     namelist = []    # sheet页名称汇总
     readPath = ''    # 读取配置路径
@@ -602,6 +613,8 @@ if __name__ == '__main__':
     mailTitle = "【CNS3.0_SOP1&SOP1.5】稳定性log分析及填写报告-反馈"
     mailMsg ='''
     <p><b>当天的稳定性log分析及填写报告已生成，请参看附件！</b></p>
+    <p><b>测试邮件，大家无需关注！</b></p>
+
     '''
     # 读取json 配置文件路径
     with open(KeyType.testconfigJsonPath,'r',encoding='UTF-8') as c:
@@ -675,7 +688,6 @@ if __name__ == '__main__':
     readExcel(writeWdxFielPath,wdx_sheet_name,start_time_data_year,start_time_data_hour,end_time_data_year,end_time_data_hour\
         ,data_setupFP,name_data,data_startNum,data_endNum,data_maxNum,ok_or_ng,effective_running_time,timestamp,error_running_time,divide_Time_list)
 
-    
     # 收件人与抄送人自动判断,判断后并发送结果
     if namelist :
         for d in (config.keys()):
@@ -693,7 +705,9 @@ if __name__ == '__main__':
         mail_passCc_str = ','.join(mail_passCc)
         print('出现问题时的收件人地址：%s'%(mail_Error_Pass_str))
         print('其他OK的收件人地址和抄送地址：%s'%(mail_passCc_str))
-        # manager = EmailManager(mail_Error_Pass_str,mail_passCc_str,mailMsg,mailTitle,Files)
+        if week != 6 or week != 7:
+            manager = EmailManager(mail_Error_Pass_str,mail_passCc_str,mailMsg,mailTitle,Files)
+            manager.sendEmail()
         # send_mail_time(manager)
     else:
         mail_Pass.remove(mail_Pass_regulator)
@@ -702,7 +716,9 @@ if __name__ == '__main__':
         mail_full_pass = mail_Pass_str + mail_passCc_str
         print('全部无问题时发送管理者收件人：%s'%(mail_Pass_regulator))
         print('配置项中原有抄送地址+除管理者外其他收件人：%s'%(mail_full_pass))
-        # manager = EmailManager(mail_Pass_regulator,mail_full_pass,mailMsg,mailTitle,Files)
+        if week != 6 or week != 7:
+            manager = EmailManager(mail_Pass_regulator,mail_full_pass,mailMsg,mailTitle,Files)
+            manager.sendEmail()
         # send_mail_time(manager)
 
     
