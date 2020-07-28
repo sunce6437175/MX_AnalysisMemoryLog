@@ -31,6 +31,10 @@ class KeyType:
     configJsonName = "config/config.json"
     # 最新批量json配置项地址获取(获取当前文件的绝对路径)
     configJsonPath = os.path.join(os.path.abspath(os.path.dirname(__file__)),configJsonName).replace("\\",'/')
+    # 修改添加自动拾取时间的json配置项后写入文件
+    testconfigJsonName = "config/testJson.json"
+    # 修改添加自动拾取时间的json配置项后写入文件路径
+    testconfigJsonPath = os.path.join(os.path.abspath(os.path.dirname(__file__)),testconfigJsonName).replace("\\",'/')
 
 class Animalm:
     def __init__(self,name,startTime,finishTime,readPath,writePath,exclPath,KPI,secondaryMaximum,divide_The_Value,divide_The_Time,pState):
@@ -520,7 +524,7 @@ def send_mail_time(manager):
         time.sleep(1)
         print("等待%d"%(time.time()))
         # schedule.q
-# 自动读取log中开始和结束时间
+# 自动读取log中开始和结束时间并写入到testconfig文件
 def read_time_wirte_json():
     keyMXNavi = '/usr/bin/MXNavi'
     tempLienNum = 0
@@ -537,35 +541,31 @@ def read_time_wirte_json():
                         data_name = data_perison["name"]
                         data_setupFileName = data_grade['setupFilePath']
                         data_setupFilePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),data_setupFileName).replace("\\",'/')
-                        print('-------------------------------')
-                        print(data_setupFilePath)
+                        # 找到换关键字的第一行
                         with open(data_setupFilePath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
                             for line in read_file:
                                 if keyMXNavi in line:
-                                    # print('关键字%s在第%d行'%(keyMXNavi,tempLienNum))
-                                    # print('找到第一关键字所在行%d'%(tempLienNum))
-                                    # print('开始：%s'%line)
                                     start_time = line.split()[0].strip('[') + ' ' + line.split()[1].strip(']')
-                                    print('开始时间：%s'%start_time)
-
+                                    data_grade['startTime'] = start_time
+                                    # print('开始时间：%s'%data_grade['startTime'])
                                     break
                                 tempLienNum = tempLienNum + 1
-
+                        # 找到换关键字的最后一行
                         with open(data_setupFilePath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
                             dq = deque(read_file)
                             while dq :
                                 last_row = dq.pop()
-                                # print(last_row)
                                 if keyMXNavi in last_row:
-                                    # print('结束：%s'%last_row)
                                     end_time = last_row.split()[0].strip('[') + ' ' + last_row.split()[1].strip(']')
-                                    print('结束时间：%s'%end_time)
+                                    data_grade['endTime'] = end_time
+                                    # print('结束时间：%s'%data_grade['endTime'])
                                     break
-                        print('===============================')
+    with open(KeyType.testconfigJsonPath,'w',encoding="utf-8") as wr :
+        json.dump(config,wr,indent=4,sort_keys=False,ensure_ascii=False)
 
-    
+
 if __name__ == '__main__':
-    read_time_wirte_json()
+    read_time_wirte_json()   # 自动读取log时间，写入新json文件并运用
     wdx_sheet_name = '常规版本稳定性测试结果'
     namelist = []    # sheet页名称汇总
     readPath = ''    # 读取配置路径
@@ -604,7 +604,7 @@ if __name__ == '__main__':
     <p><b>当天的稳定性log分析及填写报告已生成，请参看附件！</b></p>
     '''
     # 读取json 配置文件路径
-    with open(KeyType.configJsonPath,'r',encoding='UTF-8') as c:
+    with open(KeyType.testconfigJsonPath,'r',encoding='UTF-8') as c:
         config = json.load(c)
         writeFileName = config['Output_Path']
         writeWdxFielName = config['WDX_Output_Path']
@@ -653,30 +653,27 @@ if __name__ == '__main__':
                         data_setupFP.append(data_setupFilePath)
 
                         placingState = data_grade['placingState']
-                        # print('==============================start==============================')
+                        print('==============================start==============================')
                         # print(data_name)
                         # print(data_setupFilePath)
                         # print(placingState)
+                        persion = Animalm(data_name,data_startTime,data_endTime,data_setupFilePath,writeFileName,config['Valgrind_File'],MEMKPI \
+                            ,config['SecondaryMaximum'],config['DivideTheValue'],config['DivideTheTime'],placingState)
+                        persion.check_tmpLine()
+                        effective_running_time,timestamp,error_running_time = persion.check_memoryTime()
+                        readPath,writePath,data_startNum,data_endNum,data_maxNum,ok_or_ng,divide_Time_list = persion.check_memorylog()
+                        namelist = persion.write_to_time()
 
-                        # persion = Animalm(data_name,data_startTime,data_endTime,data_setupFilePath,writeFileName,config['Valgrind_File'],MEMKPI \
-                        #     ,config['SecondaryMaximum'],config['DivideTheValue'],config['DivideTheTime'],placingState)
-                        # persion.check_tmpLine()
-                        # effective_running_time,timestamp,error_running_time = persion.check_memoryTime()
-                        # readPath,writePath,data_startNum,data_endNum,data_maxNum,ok_or_ng,divide_Time_list = persion.check_memorylog()
-                        # namelist = persion.write_to_time()
-
-                        # print('出现问题的最终名单：%s'%namelist)
-                        # print('==============================end==============================')
+                        print('出现问题的最终名单：%s'%namelist)
+                        print('==============================end==============================')
                     else:
-                        pass
-                        # print("JSON文件设置项配置错误")  
+                        print("JSON文件设置项配置错误")  
             else:
-                pass
-                # print("不存在Output_Path和Valgrind_File文件夹")
+                print("不存在Output_Path和Valgrind_File文件夹")
 
-    # write_to_excel(namelist,readPath,writePath,timestamp,error_running_time)
-    # readExcel(writeWdxFielPath,wdx_sheet_name,start_time_data_year,start_time_data_hour,end_time_data_year,end_time_data_hour\
-    #     ,data_setupFP,name_data,data_startNum,data_endNum,data_maxNum,ok_or_ng,effective_running_time,timestamp,error_running_time,divide_Time_list)
+    write_to_excel(namelist,readPath,writePath,timestamp,error_running_time)
+    readExcel(writeWdxFielPath,wdx_sheet_name,start_time_data_year,start_time_data_hour,end_time_data_year,end_time_data_hour\
+        ,data_setupFP,name_data,data_startNum,data_endNum,data_maxNum,ok_or_ng,effective_running_time,timestamp,error_running_time,divide_Time_list)
 
     
     # 收件人与抄送人自动判断,判断后并发送结果
