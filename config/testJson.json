@@ -1,0 +1,135 @@
+{
+    "personne1": {
+        "name": "孙策",
+        "project": "SOP1.5",
+        "mailPass": "sunc@meixing.com",
+        "grade": {
+            "startTime": "2020/5/9 16:48:47",
+            "endTime": "2020/5/9 17:00:30",
+            "setupFilePath": "Valgrind_File/CNS3.0_2020-05-09_16-48-44_sunc.log",
+            "placingState": "normal"
+        }
+    },
+    "personne2": {
+        "name": "尚凌云",
+        "project": "SOP1.5",
+        "mailPass": "shangly@meixing.com",
+        "grade": {
+            "startTime": "2020/5/8 17:52:54",
+            "endTime": "2020/5/9 9:08:55",
+            "setupFilePath": "Valgrind_File/CNS3_2020-05-08_17-52-52_shangly.log",
+            "placingState": "normal"
+        }
+    },
+    "personne3": {
+        "name": "杨婧",
+        "project": "SOP1.5",
+        "mailPass": "yangjing@meixing.com",
+        "grade": {
+            "startTime": "2020/5/8 18:09:09",
+            "endTime": "2020/5/9 9:23:57",
+            "setupFilePath": "Valgrind_File/1_wangj.log",
+            "placingState": "normal"
+        }
+    },
+    "personne4": {
+        "name": "高鸿宇",
+        "project": "SOP1.5",
+        "mailPass": "gaohy@meixing.com",
+        "grade": {
+            "startTime": "2020/3/27 15:08:02",
+            "endTime": "2020/3/30 8:52:58",
+            "setupFilePath": "Valgrind_File/sop1.5_2020-03-27_15-07-54.log",
+            "placingState": "normal"
+        }
+    },
+    "personne5": {
+        "name": "吴晶",
+        "project": "SOP1.5",
+        "mailPass": "wuj@meixing.com",
+        "grade": {
+            "startTime": "2020/3/30 17:56:55",
+            "endTime": "2020/3/31 8:55:46",
+            "setupFilePath": "Valgrind_File/123.log",
+            "placingState": "normal"
+        }
+    },
+    "personne6": {
+        "name": "许重金",
+        "project": "SOP1.5",
+        "mailPass": "xuzj@meixing.com",
+        "grade": {
+            "startTime": "2020/5/9 18:48:48",
+            "endTime": "2020/5/10 16:35:06",
+            "setupFilePath": "Valgrind_File/CNS3.0_2020-05-09_18-48-17.log",
+            "placingState": "normal"
+        }
+    },
+    "personne7": {
+        "name": "徐英君",
+        "project": "SOP1.5",
+        "mailPass": "xuyj@meixing.com",
+        "grade": {
+            "startTime": "2020/1/11 13:34:52",
+            "endTime": "2020/1/12 23:51:07",
+            "setupFilePath": "Valgrind_File/sop1.5_2020-01-11_13-34-44chao1024.log",
+            "placingState": "normal"
+        }
+    },
+    "personne8": {
+        "name": "王婧",
+        "project": "SOP1",
+        "mailPass": "wangjing@meixing.com",
+        "grade": {
+            "startTime": "2020/1/11 13:34:52",
+            "endTime": "2020/1/12 0:57:54",
+            "setupFilePath": "Valgrind_File/sop1_2020-12-11_13-34-44_1000-1024.log",
+            "placingState": "normal"
+        }
+    },
+    "personne9": {
+        "name": "史贺",
+        "project": "SOP1_FBU",
+        "mailPass": "shih@meixing.com",
+        "grade": {
+            "startTime": "2020/5/15 20:11:27",
+            "endTime": "2020/5/18 8:58:55",
+            "setupFilePath": "Valgrind_File/CNS3.0_2020-05-15_20-11-23.log",
+            "placingState": "normal"
+        }
+    },
+    "personne10": {
+        "name": "王志卉",
+        "project": "SOP1.5",
+        "mailPass": "wangzh@meixing.com",
+        "grade": {
+            "startTime": "2020/7/16 18:33:55",
+            "endTime": "2020/7/20 8:30:48",
+            "setupFilePath": "Valgrind_File/CNS3.0_2020-07-16_18-33-51.log",
+            "placingState": "NA"
+        }
+    },
+    "personne11": {
+        "name": "宋艳红",
+        "project": "SOP1.5",
+        "mailPass": "songyh@meixing.com",
+        "grade": {
+            "startTime": "2020/6/24 16:59:09",
+            "endTime": "2020/6/28 8:34:39",
+            "setupFilePath": "Valgrind_File/CNS3.0_2020-06-24_16-59-06.log",
+            "placingState": "第三方NG"
+        }
+    },
+    "Output_Path": "CNS3MemoryNew.xls",
+    "Valgrind_File": "Valgrind_File",
+    "WDX_Output_Path": "CNS3.0_ST_Checklist_WDXTest_SOP1&SOP1.5.xlsx",
+    "MEMkPI": "1024",
+    "SecondaryMaximum": "1000",
+    "DivideTheValue": "300",
+    "DivideTheTime": "60",
+    "mailpassCc": {
+        "lead1": "liujun@meixing.com",
+        "lead2": "gaojy@meixing.com",
+        "lead3": "zhaotj@meixing.com"
+    }
+}
