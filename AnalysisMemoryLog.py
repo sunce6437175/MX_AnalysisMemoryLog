@@ -10,8 +10,7 @@ import time
 import xlsxwriter
 import openpyxl
 from collections import deque
-# Send txt&image import
-import requests
+# Send txt&excel import
 import smtplib,time
 import datetime
 import schedule
@@ -21,8 +20,7 @@ from email.mime.multipart import MIMEMultipart
 from email.header import Header
 from email.mime.base import MIMEBase
 from email.mime.application import MIMEApplication
-# 获取节假日api
-import chinese_calendar
+# 获取中国节假日api
 from chinese_calendar import is_workday
 
 # 配置参数路径class
@@ -38,7 +36,7 @@ class KeyType:
     # 修改添加自动拾取时间的json配置项后写入文件路径
     testconfigJsonPath = os.path.join(os.path.abspath(os.path.dirname(__file__)),testconfigJsonName).replace("\\",'/')
 
-class Animalm:
+class Analysism:
     def __init__(self,name,startTime,finishTime,readPath,writePath,exclPath,KPI,secondaryMaximum,divide_The_Value,divide_The_Time,pState):
         self.name = name
         self.startTime = startTime
@@ -79,15 +77,15 @@ class Animalm:
                     if KeyType.deWeightTime in line:
                         continue
                     else:
-                        Animalm.startLineNum = tempLienNum
+                        Analysism.startLineNum = tempLienNum
                         
                 if self.finishTime in line:
                     if "END" in line:
                         continue
                     else:
-                        Animalm.finishLineNum = tempLienNum
+                        Analysism.finishLineNum = tempLienNum
 
-        return(Animalm.startLineNum,Animalm.finishLineNum)
+        return(Analysism.startLineNum,Analysism.finishLineNum)
 
     #判断有效运行时间
     def check_memoryTime(self):
@@ -103,7 +101,7 @@ class Animalm:
         # 2.1）抽取开始和结束的时间戳，判断有效运行时间（单位：小时）
         dayCtimes = ((vFt - vSt).total_seconds())/3600      # dayCtimes = ((vSt - vFt).total_seconds())/3600
         # print("本次有效时间-----共%.2f小时-----"%(dayCtimes))
-        Animalm.effective_running_time.append("运行 %.2f H"%(dayCtimes))
+        Analysism.effective_running_time.append("运行 %.2f H"%(dayCtimes))
         # 2.2）以及当内存超1024MB时所需时间。（超 kpi xxxxMB才需判断）
         stmpLine = self.startLineNum      # 调用父类check_tmpLine方法并赋值起始行，防止初始化循环调用
         ftmpLine = self.finishLineNum      # 调用父类check_tmpLine方法并赋值结束行，防止初始化循环调用
@@ -115,16 +113,17 @@ class Animalm:
                     if tempNum >= stmpLine and tempNum < ftmpLine:
                         a = xline.split()
                         b = a[5]
+
                         if int(b[:-1]) == int(self.KPI):
                             surpassDay = str((a[0]).strip('['))
                             surpassHour = (a[1])
                             surpassStr = (surpassDay + ' '+ surpassHour).rsplit(']')
                             surpassTime = datetime.datetime.strptime((surpassStr[0]).replace("/",'-'),"%Y-%m-%d %H:%M:%S")
                             # print("开始超过 %sMB 的时间戳为 %s"%(1024,a[0] + a[1]))
-                            Animalm.timestamp.append("开始超过 %dMB 的时间戳为 %s"%(self.KPI,a[0] + ' ' + a[1]))
-                            Animalm.surpassTimeS = ((vSt - surpassTime).seconds)/3600
+                            Analysism.timestamp.append("开始超过 %dMB 的时间戳为 %s"%(self.KPI,a[0] + ' ' + a[1]))
+                            Analysism.surpassTimeS = ((vSt - surpassTime).seconds)/3600
                             # print("导航放置 %.2f 小时到达 %s MB"%(surpassTimeS,self.kPI))
-                            # Animalm.error_running_time.append("超过%dMB的时间戳为%s/导航放置%.2f小时到达%dMB"%(self.KPI,a[0] + ' ' +a[1],surpassTimeS,self.KPI))
+                            # Analysism.error_running_time.append("超过%dMB的时间戳为%s/导航放置%.2f小时到达%dMB"%(self.KPI,a[0] + ' ' +a[1],surpassTimeS,self.KPI))
                             break
                         else:
                             pass
@@ -135,7 +134,7 @@ class Animalm:
         else:
             pass
 
-        return(Animalm.effective_running_time,Animalm.timestamp,Animalm.error_running_time)
+        return(Analysism.effective_running_time,Analysism.timestamp,Analysism.error_running_time)
 
     # 判断内存开始和结束以及最大值
     def check_memorylog(self):
@@ -153,8 +152,8 @@ class Animalm:
         dtvList = []
 
         #取得开始结束值以及最大值 
-        stmpLine = Animalm.startLineNum      # 调用父类check_tmpLine方法并赋值起始行，防止初始化循环调用
-        ftmpLine = Animalm.finishLineNum      # 调用父类check_tmpLine方法并赋值结束行，防止初始化循环调用
+        stmpLine = Analysism.startLineNum      # 调用父类check_tmpLine方法并赋值起始行，防止初始化循环调用
+        ftmpLine = Analysism.finishLineNum      # 调用父类check_tmpLine方法并赋值结束行，防止初始化循环调用
 
         if stmpLine <= ftmpLine and ftmpLine > stmpLine:
             with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
@@ -174,9 +173,9 @@ class Animalm:
         eNum = tempList[-1]
         mNum  = max(tempList)
 
-        Animalm.starNumlist.append(sNum)
-        Animalm.endNumlist.append(eNum)
-        Animalm.maxNumlist.append(mNum)
+        Analysism.starNumlist.append(sNum)
+        Analysism.endNumlist.append(eNum)
+        Analysism.maxNumlist.append(mNum)
         startNum = '起始内存值: ' + str(tempList[0]) + ' MB'
         endNum = '结束内存值: ' + str(tempList[-1]) + ' MB'
         maxNum = '最大内存值: ' + str(max(tempList)) + ' MB'
@@ -185,11 +184,11 @@ class Animalm:
         if mNum >= int(self.KPI) and eNum >= int(self.KPI):
             print("实现场景1：判断峰值和结束已超1024MB")
             self.write_to_time()
-            Animalm.sheetNameList.append(self.name)
-            Animalm.error_running_time.append("超过%dMB的时间戳为%s/导航放置%.2f小时到达%dMB"%(self.KPI,a[0] + ' ' +a[1],Animalm.surpassTimeS,self.KPI))
+            Analysism.sheetNameList.append(self.name)
+            Analysism.error_running_time.append("超过%dMB的时间戳为%s/导航放置%.2f小时到达%dMB"%(self.KPI,a[0] + ' ' +a[1],Analysism.surpassTimeS,self.KPI))
             if self.pState == 'normal':
-                Animalm.test_Result = 'NG'
-                Animalm.test_Result_status.append(Animalm.test_Result) 
+                Analysism.test_Result = 'NG'
+                Analysism.test_Result_status.append(Analysism.test_Result) 
             # self.check_memoryTime()
             # 取出全部数据生成Excel sheet    
             if stmpLine <= ftmpLine and ftmpLine > stmpLine:
@@ -237,15 +236,15 @@ class Animalm:
                         print('超过在1000 - 1024之间的连续时间：%ds'%b)
 
                         if b >= int(self.divide_The_Time) :
-                            # Animalm.divide_Time_list.append("超过在1000 - 1024之间的连续时间：%ds'"%b)
-                            Animalm.error_running_time.append("超过在1000 - 1024之间的连续时间%ds'"%b)
+                            # Analysism.divide_Time_list.append("超过在1000 - 1024之间的连续时间：%ds'"%b)
+                            Analysism.error_running_time.append("超过在1000 - 1024之间的连续时间%ds'"%b)
                             print("实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持（保持时间 暂定≥%ds）"%int(self.divide_The_Time))
                             self.write_to_time()
-                            Animalm.sheetNameList.append(self.name)
+                            Analysism.sheetNameList.append(self.name)
                             
                             if self.pState == 'normal':
-                                Animalm.test_Result = 'NG'
-                                Animalm.test_Result_status.append(Animalm.test_Result) 
+                                Analysism.test_Result = 'NG'
+                                Analysism.test_Result_status.append(Analysism.test_Result) 
                         else:
                             print("未实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持未≥%ds "%self.divide_The_Time)
                             
@@ -253,39 +252,40 @@ class Animalm:
         elif mNum < int(self.secondaryMaximum) and (int(eNum) - int(sNum)) >= int(self.divide_The_Value) :
             print("实现场景3：内存一直未超1000MB,但开始与结束的实际落差值在%sMB,已超过KPI: %s MB"%((int(eNum) - int(sNum)),self.divide_The_Value))
             self.write_to_time()
-            Animalm.sheetNameList.append(self.name)
+            Analysism.sheetNameList.append(self.name)
             if self.pState == 'normal' :
-                Animalm.test_Result = 'NG'
-                Animalm.test_Result_status.append(Animalm.test_Result)  
-            Animalm.error_running_time.append("内存一直未超1000MB,但开始与结束的实际落差值在%sMB,已超过KPI:%sMB"%((int(eNum) - int(sNum)),self.divide_The_Value))
+                Analysism.test_Result = 'NG'
+                Analysism.test_Result_status.append(Analysism.test_Result)  
+            Analysism.error_running_time.append("内存一直未超1000MB,但开始与结束的实际落差值在%sMB,已超过KPI:%sMB"%((int(eNum) - int(sNum)),self.divide_The_Value))
             # 取出存在落差的全部数据创新sheet,并创建柱状图
             if stmpLine <= ftmpLine and ftmpLine > stmpLine:
                 with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
                     for xline in read_file:
                         xline = xline.strip('\n')
                         dtvList.append(xline)
+
         # 实现场景4：判断峰值或结束值是未超1024MB，且未长时间1000MB和未超开始结束落差值
         else:
-            # Animalm.test_Result = 'OK'
-            # Animalm.divide_Time_list.append('无')
-            Animalm.error_running_time.append('无')
+            # Analysism.test_Result = 'OK'
+            # Analysism.divide_Time_list.append('无')
+            Analysism.error_running_time.append('无')
             if self.pState == 'normal':
-                Animalm.test_Result = 'OK'
-                Animalm.test_Result_status.append(Animalm.test_Result) 
+                Analysism.test_Result = 'OK'
+                Analysism.test_Result_status.append(Analysism.test_Result) 
             elif self.pState == 'NA':
-                Animalm.test_Result = 'NA'
-                Animalm.test_Result_status.append(Animalm.test_Result)
+                Analysism.test_Result = 'NA'
+                Analysism.test_Result_status.append(Analysism.test_Result)
             elif self.pState == '第三方NG':
-                Animalm.test_Result = '第三方NG'
-                Animalm.test_Result_status.append(Animalm.test_Result)
+                Analysism.test_Result = '第三方NG'
+                Analysism.test_Result_status.append(Analysism.test_Result)
 
             print("实现场景4：本次内存峰值和结束值不存在超%sMB的测试场景"%(self.KPI))
         
-        return(self.readPath,self.writePath,Animalm.starNumlist,Animalm.endNumlist,Animalm.maxNumlist,Animalm.test_Result_status,Animalm.divide_Time_list)
+        return(self.readPath,self.writePath,Analysism.starNumlist,Analysism.endNumlist,Analysism.maxNumlist,Analysism.test_Result_status,Analysism.divide_Time_list)
     # 创建出现问题sheet数量
     def write_to_time(self):
-        Animalm.sheetcount +=1
-        return(Animalm.sheetNameList)
+        Analysism.sheetcount +=1
+        return(Analysism.sheetNameList)
 # 自定义的内存error创建excel内容和数据
 def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time):
     alist = ()             # 放置年月日的元组
@@ -505,6 +505,7 @@ class EmailManager:
         smtp.connect(mail_host,25)
         smtp.sendmail(msg['From'],msg['To'].split(',') + msg['Cc'].split(','),msg.as_string())
         smtp.quit()
+        print('邮件发送成功！')
             
 # 自动读取log中开始和结束时间并写入到testconfig文件
 def read_time_wirte_json():
@@ -549,7 +550,7 @@ def read_time_wirte_json():
 
 if __name__ == '__main__':
     read_time_wirte_json()   # 自动读取log时间，写入新json文件并运用
-
+    # 获取当前时间
     daytime = datetime.datetime.now().date()
     boll = is_workday(daytime)  # 输出结果为bool值，True为工作日，False为休息日。
     
@@ -588,9 +589,7 @@ if __name__ == '__main__':
     mail_Pass_regulator = 'sunc@meixing.com'     # 邮件收件人管理者
 
     mailTitle = "【CNS3.0_SOP1&SOP1.5】稳定性log分析及填写报告-反馈"
-    mailMsg ='''
-    <p><b>当天的稳定性log分析及填写报告已生成，请参看附件！</b></p>
-    '''
+
     # 读取json 配置文件路径
     with open(KeyType.testconfigJsonPath,'r',encoding='UTF-8') as c:
         config = json.load(c)
@@ -641,7 +640,7 @@ if __name__ == '__main__':
                         data_setupFP.append(data_setupFilePath)
                         placingState = data_grade['placingState']
 
-                        persion = Animalm(data_name,data_startTime,data_endTime,data_setupFilePath,writeFileName,config['Valgrind_File'],MEMKPI \
+                        persion = Analysism(data_name,data_startTime,data_endTime,data_setupFilePath,writeFileName,config['Valgrind_File'],MEMKPI \
                             ,config['SecondaryMaximum'],config['DivideTheValue'],config['DivideTheTime'],placingState)
                         persion.check_tmpLine()
                         effective_running_time,timestamp,error_running_time = persion.check_memoryTime()
@@ -687,13 +686,18 @@ if __name__ == '__main__':
         # mail_Error_Pass_str = ','.join(mail_Error_Pass)
         print('出现问题时的收件人地址：%s'%(mail_Error_Pass_str))
         print('其他OK的收件人地址和抄送地址：%s'%(mail_passCc_str))
+
         if boll :
-            mailMsg_str = '稳定性测试结果存在NG，以上收件人请注意！' 
-            mailMsg = mailMsg + mailMsg_str 
+            mailMsg = '''
+            <p><b>当天的稳定性log分析及填写报告已生成，请参看附件！</b></p>
+            <p>稳定性测试结果存在<b><font color="red">NG</font></b>，以上收件人请注意！</p>
+            <p>稳定性结果更新地址：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
+            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\Log_File">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\Log_File</a></p>
+            '''
             manager = EmailManager(mail_Error_Pass_str,mail_passCc_str,mailMsg,mailTitle,Files)
             manager.sendEmail()
         else :
-            print('今天 %s 是节假日'%daytime)
+            print('今天 %s 是节假日,无需发邮件'%daytime)
     else:
         # 抄送人邮箱如与管理者重复则移除操作
         mail_Pass.remove(mail_Pass_regulator)
@@ -710,12 +714,18 @@ if __name__ == '__main__':
         print('全部无问题时发送管理者收件人：%s'%(mail_Pass_regulator))
         print('配置项中原有抄送地址+除管理者外其他收件人：%s'%(mail_full_pass))
         if boll :
-            mailMsg_str = ('稳定性测试结果全部OK\n' + '稳定性结果更新地址：%s \n 稳定性结果Log上传路径：//192.168.2.7/BugInfo_2020(7月29日启用)/CNS3.0 Sop1.5/非功能测试结果/稳定性测试/MX_AnalysisMemoryLog/%s'%(writeWdxFielPath,config['Valgrind_File']))
-            mailMsg = mailMsg + mailMsg_str 
+            mailMsg = '''
+            <p><b>当天的稳定性log分析及填写报告已生成，请参看附件！</b></p>
+            <p>稳定性测试结果全部<b>OK</b></p>
+            <p>稳定性结果更新地址：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
+            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\Log_File">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\Log_File</a></p>
+            '''
+            # mail_Pass_regulator = 'sunc@meixing.com'
+            # mail_full_pass = 'sunc@meixing.com'
             manager = EmailManager(mail_Pass_regulator,mail_full_pass,mailMsg,mailTitle,Files)
             manager.sendEmail()
         else :
-            print('今天 %s 是节假日'%daytime)
+            print('今天 %s 是节假日,无需发邮件'%daytime)
 
 
     
