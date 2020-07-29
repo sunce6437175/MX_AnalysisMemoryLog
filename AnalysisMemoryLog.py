@@ -29,14 +29,12 @@ from chinese_calendar import is_workday
 class KeyType:
     # 搜索内存关键字
     deWeightTime = "top -m | grep MXNavi"
-    # 原有setup配置项(当前工作路径不采用,可考虑删除)
-    # setupFileName = "SETUP.txt"
     # 最新批量json配置项 (从本地改为服务器路径)
-    configJsonName = "//192.168.2.7/BugInfo_2020/CNS3.0 Sop1.5/SOP1&1.5Valgrind_File/MX_AnalysisMemoryLog/config/config.json"
+    configJsonName = "//192.168.2.7/BugInfo_2020(7月29日启用)/CNS3.0 Sop1.5/非功能测试结果/稳定性测试/MX_AnalysisMemoryLog/config/config.json"
     # 最新批量json配置项地址获取(获取当前文件的绝对路径)
     configJsonPath = os.path.join(os.path.abspath(os.path.dirname(__file__)),configJsonName).replace("\\",'/')
     # 修改添加自动拾取时间的json配置项后写入文件 (从本地改为服务器路径)
-    testconfigJsonName = "//192.168.2.7/BugInfo_2020/CNS3.0 Sop1.5/SOP1&1.5Valgrind_File/MX_AnalysisMemoryLog/config/testJson.json"
+    testconfigJsonName = "//192.168.2.7/BugInfo_2020(7月29日启用)/CNS3.0 Sop1.5/非功能测试结果/稳定性测试/MX_AnalysisMemoryLog/config/testJson.json"
     # 修改添加自动拾取时间的json配置项后写入文件路径
     testconfigJsonPath = os.path.join(os.path.abspath(os.path.dirname(__file__)),testconfigJsonName).replace("\\",'/')
 
@@ -72,9 +70,7 @@ class Animalm:
     surpassTimeS = 0              #超过在1024放置时间
 
     def check_tmpLine(self):
-        # tempList = []       # 标注列表
         tempLienNum = 0     # 标注行数
-        # tempNum = 0         # 对比行数
 
         with open(self.readPath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
             for line in read_file:
@@ -113,14 +109,12 @@ class Animalm:
         ftmpLine = self.finishLineNum      # 调用父类check_tmpLine方法并赋值结束行，防止初始化循环调用
         
         if stmpLine <= ftmpLine and ftmpLine > stmpLine:
-            # print(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()))
             with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
                 for xline in read_file:
                     xline = xline.strip('\n')
                     if tempNum >= stmpLine and tempNum < ftmpLine:
                         a = xline.split()
                         b = a[5]
-                        # tempList.append(int(b[:-1]))
                         if int(b[:-1]) == int(self.KPI):
                             surpassDay = str((a[0]).strip('['))
                             surpassHour = (a[1])
@@ -138,7 +132,6 @@ class Animalm:
                         pass
                     tempNum = tempNum + 1
             
-            # print(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()))
         else:
             pass
 
@@ -242,6 +235,7 @@ class Animalm:
                         elif i == ftmpLine + 1 :
                             break
                         print('超过在1000 - 1024之间的连续时间：%ds'%b)
+
                         if b >= int(self.divide_The_Time) :
                             # Animalm.divide_Time_list.append("超过在1000 - 1024之间的连续时间：%ds'"%b)
                             Animalm.error_running_time.append("超过在1000 - 1024之间的连续时间%ds'"%b)
@@ -252,7 +246,6 @@ class Animalm:
                             if self.pState == 'normal':
                                 Animalm.test_Result = 'NG'
                                 Animalm.test_Result_status.append(Animalm.test_Result) 
-
                         else:
                             print("未实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持未≥%ds "%self.divide_The_Time)
                             
@@ -511,25 +504,8 @@ class EmailManager:
         # 使用标准的25端口连接SMTP服务器时，使用的是明文传输，发送邮件的整个过程可能会被窃听
         smtp.connect(mail_host,25)
         smtp.sendmail(msg['From'],msg['To'].split(',') + msg['Cc'].split(','),msg.as_string())
-        smtp.quit()\
+        smtp.quit()
             
-# 定时发送结果邮件
-# def send_mail_time(manager):
-    # schedule.every(1).minutes.do(manager.sendEmail)  
-    # schedule.every().monday.at("10:01").do(manager.sendEmail)
-    # schedule.every().tuesday.at("10:01").do(manager.sendEmail)
-    # schedule.every().wednesday.at("10:01").do(manager.sendEmail)
-    # schedule.every().thursday.at("20:45").do(manager.sendEmail)
-    # schedule.every().friday.at("16:08").do(manager.sendEmail)
-    # schedule.every().saturday.at("11:00").do(manager.sendEmail)
-    # schedule.every().sunday.at("11:00").do(manager.sendEmail)
-    # while True:
-    #     schedule.run_pending()
-    #     time.sleep(1)
-    #     print("等待%d"%(time.time()))
-        # schedule.q
-
-
 # 自动读取log中开始和结束时间并写入到testconfig文件
 def read_time_wirte_json():
     keyMXNavi = '/usr/bin/MXNavi'
@@ -547,6 +523,7 @@ def read_time_wirte_json():
                         data_name = data_perison["name"]
                         data_setupFileName = data_grade['setupFilePath']
                         data_setupFilePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),data_setupFileName).replace("\\",'/')
+                    
                         # 找到换关键字的第一行
                         with open(data_setupFilePath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
                             for line in read_file:
@@ -613,8 +590,6 @@ if __name__ == '__main__':
     mailTitle = "【CNS3.0_SOP1&SOP1.5】稳定性log分析及填写报告-反馈"
     mailMsg ='''
     <p><b>当天的稳定性log分析及填写报告已生成，请参看附件！</b></p>
-    <p><b>测试邮件，大家无需关注！</b></p>
-
     '''
     # 读取json 配置文件路径
     with open(KeyType.testconfigJsonPath,'r',encoding='UTF-8') as c:
@@ -635,7 +610,7 @@ if __name__ == '__main__':
         # 邮件抄送人员list拼接成字符串格式
         # mail_passCc_str = ','.join(mail_passCc)
 
-    #判断 Output_Path 文件夹是否存在
+        #判断 Output_Path 文件夹是否存在
         if os.path.exists(config['Output_Path']):
             print("Output_Path 已存在")
         else:
@@ -665,6 +640,7 @@ if __name__ == '__main__':
                         data_setupFilePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),data_setupFileName).replace("\\",'/')
                         data_setupFP.append(data_setupFilePath)
                         placingState = data_grade['placingState']
+
                         persion = Animalm(data_name,data_startTime,data_endTime,data_setupFilePath,writeFileName,config['Valgrind_File'],MEMKPI \
                             ,config['SecondaryMaximum'],config['DivideTheValue'],config['DivideTheTime'],placingState)
                         persion.check_tmpLine()
@@ -694,25 +670,48 @@ if __name__ == '__main__':
                             mail_Error_Pass.append(data_perison["mailPass"])
                         else:
                             mail_passCc.append(data_perison["mailPass"])
-
-        mail_Error_Pass_str = ','.join(mail_Error_Pass)
-        mail_passCc_str = ','.join(mail_passCc)
+        # 收件人邮箱名重复处理
+        if len(mail_Error_Pass) == len(set(mail_Error_Pass)):
+            print('邮件名称不重复')
+            mail_Error_Pass_str = ','.join(mail_Error_Pass)
+        else:
+            print('邮件名称重复')
+            mail_Error_Pass_str = ','.join(set(mail_Error_Pass))
+        # 抄送人邮箱名重复处理
+        if len(mail_passCc) == len(set(mail_passCc)):
+            print('邮件名称不重复')
+            mail_passCc_str = ','.join(mail_passCc)
+        else:
+            print('邮件名称重复')
+            mail_passCc_str = ','.join(set(mail_passCc))
+        # mail_Error_Pass_str = ','.join(mail_Error_Pass)
         print('出现问题时的收件人地址：%s'%(mail_Error_Pass_str))
         print('其他OK的收件人地址和抄送地址：%s'%(mail_passCc_str))
         if boll :
+            mailMsg_str = '稳定性测试结果存在NG，以上收件人请注意！' 
+            mailMsg = mailMsg + mailMsg_str 
             manager = EmailManager(mail_Error_Pass_str,mail_passCc_str,mailMsg,mailTitle,Files)
             manager.sendEmail()
-        # send_mail_time(manager)
         else :
             print('今天 %s 是节假日'%daytime)
     else:
+        # 抄送人邮箱如与管理者重复则移除操作
         mail_Pass.remove(mail_Pass_regulator)
-        mail_Pass_str = ','.join(mail_Pass)
         mail_passCc_str = ','.join(mail_passCc)
-        mail_full_pass = mail_Pass_str + mail_passCc_str
+        # 抄送人邮箱名重复处理
+        if len(mail_Pass) == len(set(mail_Pass)):
+            print('邮件不重复')
+            mail_Pass_str = ','.join(mail_Pass)
+        else:
+            print('邮件重复')
+            mail_Pass_str = ','.join(set(mail_Pass))
+
+        mail_full_pass = mail_Pass_str + ',' + mail_passCc_str
         print('全部无问题时发送管理者收件人：%s'%(mail_Pass_regulator))
         print('配置项中原有抄送地址+除管理者外其他收件人：%s'%(mail_full_pass))
         if boll :
+            mailMsg_str = ('稳定性测试结果全部OK\n' + '稳定性结果更新地址：%s \n 稳定性结果Log上传路径：//192.168.2.7/BugInfo_2020(7月29日启用)/CNS3.0 Sop1.5/非功能测试结果/稳定性测试/MX_AnalysisMemoryLog/%s'%(writeWdxFielPath,config['Valgrind_File']))
+            mailMsg = mailMsg + mailMsg_str 
             manager = EmailManager(mail_Pass_regulator,mail_full_pass,mailMsg,mailTitle,Files)
             manager.sendEmail()
         else :
