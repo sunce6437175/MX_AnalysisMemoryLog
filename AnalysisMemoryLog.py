@@ -232,11 +232,9 @@ class Animalm:
                                 # print("1000<=X<1024 所在行位置： %s  的行数 = %d"%(sa,i+1))
                                 b = b+1
                             else:
-                                pass
-                                # print("不在1000<=X<1024范围内")
+                                print("不在1000<=X<1024范围内")
                         else:
-                            pass
-                            # print("！输入参数错误！")
+                            print("！输入参数错误！")
                         stempNum = stempNum + 1
                         i = i +1
                         if i != ftmpLine :
@@ -666,21 +664,15 @@ if __name__ == '__main__':
                         data_setupFileName = data_grade['setupFilePath']
                         data_setupFilePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),data_setupFileName).replace("\\",'/')
                         data_setupFP.append(data_setupFilePath)
-
                         placingState = data_grade['placingState']
-                        print('==============================start==============================')
-                        # print(data_name)
-                        # print(data_setupFilePath)
-                        # print(placingState)
                         persion = Animalm(data_name,data_startTime,data_endTime,data_setupFilePath,writeFileName,config['Valgrind_File'],MEMKPI \
                             ,config['SecondaryMaximum'],config['DivideTheValue'],config['DivideTheTime'],placingState)
                         persion.check_tmpLine()
                         effective_running_time,timestamp,error_running_time = persion.check_memoryTime()
                         readPath,writePath,data_startNum,data_endNum,data_maxNum,ok_or_ng,divide_Time_list = persion.check_memorylog()
                         namelist = persion.write_to_time()
-
                         print('出现问题的最终名单：%s'%namelist)
-                        print('==============================end==============================')
+
                     else:
                         print("JSON文件设置项配置错误")  
             else:
