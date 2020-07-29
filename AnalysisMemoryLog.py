@@ -22,7 +22,8 @@ from email.header import Header
 from email.mime.base import MIMEBase
 from email.mime.application import MIMEApplication
 # 获取节假日api
-
+import chinese_calendar
+from chinese_calendar import is_workday
 
 # 配置参数路径class
 class KeyType:
@@ -512,22 +513,25 @@ class EmailManager:
         # 使用标准的25端口连接SMTP服务器时，使用的是明文传输，发送邮件的整个过程可能会被窃听
         smtp.connect(mail_host,25)
         smtp.sendmail(msg['From'],msg['To'].split(',') + msg['Cc'].split(','),msg.as_string())
-        smtp.quit()
+        smtp.quit()\
+            
 # 定时发送结果邮件
-def send_mail_time(manager):
+# def send_mail_time(manager):
     # schedule.every(1).minutes.do(manager.sendEmail)  
-    schedule.every().monday.at("10:01").do(manager.sendEmail)
-    schedule.every().tuesday.at("10:01").do(manager.sendEmail)
-    schedule.every().wednesday.at("10:01").do(manager.sendEmail)
-    schedule.every().thursday.at("20:45").do(manager.sendEmail)
-    schedule.every().friday.at("16:08").do(manager.sendEmail)
+    # schedule.every().monday.at("10:01").do(manager.sendEmail)
+    # schedule.every().tuesday.at("10:01").do(manager.sendEmail)
+    # schedule.every().wednesday.at("10:01").do(manager.sendEmail)
+    # schedule.every().thursday.at("20:45").do(manager.sendEmail)
+    # schedule.every().friday.at("16:08").do(manager.sendEmail)
     # schedule.every().saturday.at("11:00").do(manager.sendEmail)
     # schedule.every().sunday.at("11:00").do(manager.sendEmail)
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
-        print("等待%d"%(time.time()))
+    # while True:
+    #     schedule.run_pending()
+    #     time.sleep(1)
+    #     print("等待%d"%(time.time()))
         # schedule.q
+
+
 # 自动读取log中开始和结束时间并写入到testconfig文件
 def read_time_wirte_json():
     keyMXNavi = '/usr/bin/MXNavi'
@@ -569,19 +573,11 @@ def read_time_wirte_json():
 
 
 if __name__ == '__main__':
-    # read_time_wirte_json()   # 自动读取log时间，写入新json文件并运用
+    read_time_wirte_json()   # 自动读取log时间，写入新json文件并运用
 
-    # d = datetime.datetime.now()
-    # week = d.weekday() + 1
-
-    date = time.strftime('%Y%m%d', time.localtime())
-    # print(date)
-    req = requests.get("http://api.goseek.cn/Tools/holiday?date=%s"%date)
-    # print(req)
-    req.encoding = 'utf8'
-    content = req.text
-    print(content)
-
+    daytime = datetime.datetime.now().date()
+    boll = is_workday(daytime)  # 输出结果为bool值，True为工作日，False为休息日。
+    
 
     wdx_sheet_name = '常规版本稳定性测试结果'
     namelist = []    # sheet页名称汇总
@@ -711,10 +707,12 @@ if __name__ == '__main__':
         mail_passCc_str = ','.join(mail_passCc)
         print('出现问题时的收件人地址：%s'%(mail_Error_Pass_str))
         print('其他OK的收件人地址和抄送地址：%s'%(mail_passCc_str))
-        # if week != 6 or week != 7:
-        #     manager = EmailManager(mail_Error_Pass_str,mail_passCc_str,mailMsg,mailTitle,Files)
-        #     manager.sendEmail()
+        if boll :
+            manager = EmailManager(mail_Error_Pass_str,mail_passCc_str,mailMsg,mailTitle,Files)
+            manager.sendEmail()
         # send_mail_time(manager)
+        else :
+            print('今天 %s 是节假日'%daytime)
     else:
         mail_Pass.remove(mail_Pass_regulator)
         mail_Pass_str = ','.join(mail_Pass)
@@ -722,10 +720,12 @@ if __name__ == '__main__':
         mail_full_pass = mail_Pass_str + mail_passCc_str
         print('全部无问题时发送管理者收件人：%s'%(mail_Pass_regulator))
         print('配置项中原有抄送地址+除管理者外其他收件人：%s'%(mail_full_pass))
-        # if week != 6 or week != 7:
-        #     manager = EmailManager(mail_Pass_regulator,mail_full_pass,mailMsg,mailTitle,Files)
-        #     manager.sendEmail()
-        # send_mail_time(manager)
+        if boll :
+            manager = EmailManager(mail_Pass_regulator,mail_full_pass,mailMsg,mailTitle,Files)
+            manager.sendEmail()
+        else :
+            print('今天 %s 是节假日'%daytime)
+
 
     
 
