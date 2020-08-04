@@ -111,10 +111,14 @@ class Analysism:
                 for xline in read_file:
                     xline = xline.strip('\n')
                     if tempNum >= stmpLine and tempNum < ftmpLine:
-                        a = xline.split()
-                        b = a[5]
-
+                        if KeyType.deWeightTime in xline:
+                            continue
+                        else:
+                            a = xline.split()
+                            b = a[5]
+                        
                         if int(b[:-1]) == int(self.KPI):
+                            # print(b[:-1])
                             surpassDay = str((a[0]).strip('['))
                             surpassHour = (a[1])
                             surpassStr = (surpassDay + ' '+ surpassHour).rsplit(']')
@@ -160,9 +164,12 @@ class Analysism:
                 for xline in read_file:
                     xline = xline.strip('\n')
                     if tempNum >= stmpLine and tempNum < ftmpLine:
-                        a = xline.split()
-                        b = a[5]
-                        tempList.append(int(b[:-1]))
+                        if KeyType.deWeightTime in xline:
+                            continue
+                        else:
+                            a = xline.split()
+                            b = a[5]
+                            tempList.append(int(b[:-1]))
                     else:
                         pass
                     tempNum = tempNum + 1
@@ -639,6 +646,7 @@ if __name__ == '__main__':
                         data_setupFilePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),data_setupFileName).replace("\\",'/')
                         data_setupFP.append(data_setupFilePath)
                         placingState = data_grade['placingState']
+                        print(data_setupFileName)
 
                         persion = Analysism(data_name,data_startTime,data_endTime,data_setupFilePath,writeFileName,config['Valgrind_File'],MEMKPI \
                             ,config['SecondaryMaximum'],config['DivideTheValue'],config['DivideTheTime'],placingState)
