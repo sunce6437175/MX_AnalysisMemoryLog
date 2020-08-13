@@ -115,22 +115,27 @@ class Analysism:
                             continue
                         else:
                             a = xline.split()
-                            b = a[5]
-                        
-                        if int(b[:-1]) == int(self.KPI):
+                            if len(a) > 5 :
+                                b = a[5]
+                                if int(b[:-1]) == int(self.KPI):
                             # print(b[:-1])
-                            surpassDay = str((a[0]).strip('['))
-                            surpassHour = (a[1])
-                            surpassStr = (surpassDay + ' '+ surpassHour).rsplit(']')
-                            surpassTime = datetime.datetime.strptime((surpassStr[0]).replace("/",'-'),"%Y-%m-%d %H:%M:%S")
-                            # print("开始超过 %sMB 的时间戳为 %s"%(1024,a[0] + a[1]))
-                            Analysism.timestamp.append("开始超过 %dMB 的时间戳为 %s"%(self.KPI,a[0] + ' ' + a[1]))
-                            Analysism.surpassTimeS = ((vSt - surpassTime).seconds)/3600
-                            # print("导航放置 %.2f 小时到达 %s MB"%(surpassTimeS,self.kPI))
-                            # Analysism.error_running_time.append("超过%dMB的时间戳为%s/导航放置%.2f小时到达%dMB"%(self.KPI,a[0] + ' ' +a[1],surpassTimeS,self.KPI))
-                            break
-                        else:
-                            pass
+                                    surpassDay = str((a[0]).strip('['))
+                                    surpassHour = (a[1])
+                                    surpassStr = (surpassDay + ' '+ surpassHour).rsplit(']')
+                                    surpassTime = datetime.datetime.strptime((surpassStr[0]).replace("/",'-'),"%Y-%m-%d %H:%M:%S")
+                                    # print("开始超过 %sMB 的时间戳为 %s"%(1024,a[0] + a[1]))
+                                    Analysism.timestamp.append("开始超过 %dMB 的时间戳为 %s"%(self.KPI,a[0] + ' ' + a[1]))
+                                    Analysism.surpassTimeS = ((vSt - surpassTime).seconds)/3600
+                                    # print("导航放置 %.2f 小时到达 %s MB"%(surpassTimeS,self.kPI))
+                                    # Analysism.error_running_time.append("超过%dMB的时间戳为%s/导航放置%.2f小时到达%dMB"%(self.KPI,a[0] + ' ' +a[1],surpassTimeS,self.KPI))
+                                    break
+                                else:
+                                    pass
+                            else :
+                                print("该行数的超过边界小于5的所在行%s"%(a))
+
+
+
                     else:
                         pass
                     tempNum = tempNum + 1
@@ -168,8 +173,9 @@ class Analysism:
                             continue
                         else:
                             a = xline.split()
-                            b = a[5]
-                            tempList.append(int(b[:-1]))
+                            if len(a) > 5 :
+                                b = a[5]
+                                tempList.append(int(b[:-1]))
                     else:
                         pass
                     tempNum = tempNum + 1
@@ -349,7 +355,7 @@ def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time
                                         elif "END" in kline:
                                             continue
                                         else:
-                                            print("数据不满足84位")
+                                            print("数据不满足84位==%s"%(kline))
                                 workbooksheet = workbook.add_worksheet(sheetnamelist[sheetindex])
                                 workbooksheet.write_row('A1',headings)
                                 # 可变对象转换为不可变对应作为函数的默认值（字典,集合,列表等等对象是不适合作为函数默认值的）
@@ -728,8 +734,8 @@ if __name__ == '__main__':
             <p>稳定性结果更新地址：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
             <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\Log_File">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\Log_File</a></p>
             '''
-            # mail_Pass_regulator = 'sunc@meixing.com'
-            # mail_full_pass = 'sunc@meixing.com'
+            mail_Pass_regulator = 'sunc@meixing.com'
+
             manager = EmailManager(mail_Pass_regulator,mail_full_pass,mailMsg,mailTitle,Files)
             manager.sendEmail()
         else :
