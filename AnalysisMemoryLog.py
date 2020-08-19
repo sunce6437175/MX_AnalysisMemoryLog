@@ -120,7 +120,6 @@ class Analysism:
                             if len(a) > 5 :
                                 b = a[5]
                                 if int(b[:-1]) == int(self.KPI):
-                            # print(b[:-1])
                                     surpassDay = str((a[0]).strip('['))
                                     surpassHour = (a[1])
                                     surpassStr = (surpassDay + ' '+ surpassHour).rsplit(']')
@@ -201,7 +200,6 @@ class Analysism:
             if self.pState == 'normal':
                 Analysism.test_Result = 'NG'
                 Analysism.test_Result_status.append(Analysism.test_Result) 
-            # self.check_memoryTime()
             # 取出全部数据生成Excel sheet    
             if stmpLine <= ftmpLine and ftmpLine > stmpLine:
                 with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
@@ -278,8 +276,6 @@ class Analysism:
 
         # 实现场景4：判断峰值或结束值是未超1024MB，且未长时间1000MB和未超开始结束落差值
         else:
-            # Analysism.test_Result = 'OK'
-            # Analysism.divide_Time_list.append('无')
             Analysism.error_running_time.append('无')
             if self.pState == 'normal':
                 Analysism.test_Result = 'OK'
@@ -354,7 +350,7 @@ def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time
                                         elif "END" in kline:
                                             continue
                                         else:
-                                            print("数据不满足84位==%s"%(kline))
+                                            print("数据不满足84位==%s，且不是正确有效数据"%(kline))
                                 workbooksheet = workbook.add_worksheet(sheetnamelist[sheetindex])
                                 workbooksheet.write_row('A1',headings)
                                 # 可变对象转换为不可变对应作为函数的默认值（字典,集合,列表等等对象是不适合作为函数默认值的）
@@ -521,7 +517,6 @@ class EmailManager:
             
 # 自动读取log中开始和结束时间并写入到testconfig文件
 def read_time_wirte_json():
-    # keyMXNavi = '/usr/bin/MXNavi'
     tempLienNum = 0
     start_time = ''
     with open(KeyType.configJsonPath,'r',encoding='UTF-8') as c:
