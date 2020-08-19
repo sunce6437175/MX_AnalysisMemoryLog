@@ -27,6 +27,8 @@ from chinese_calendar import is_workday
 class KeyType:
     # 搜索内存关键字
     deWeightTime = "top -m | grep MXNavi"
+    # #有效内容关键字
+    keyMXNavi = "/usr/bin/MXNavi"
     # 最新批量json配置项 (从本地改为服务器路径)
     configJsonName = "//192.168.2.7/BugInfo_2020(7月29日启用)/CNS3.0 Sop1.5/非功能测试结果/稳定性测试/MX_AnalysisMemoryLog/config/config.json"
     # 最新批量json配置项地址获取(获取当前文件的绝对路径)
@@ -134,12 +136,9 @@ class Analysism:
                             else :
                                 print("该行数的超过边界小于5的所在行%s"%(a))
 
-
-
                     else:
                         pass
                     tempNum = tempNum + 1
-            
         else:
             pass
 
@@ -341,7 +340,7 @@ def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time
                                     for kline in readline:
                                         if "BEGIN" in kline:
                                             continue
-                                        elif len(kline) >= 84 :
+                                        elif len(kline) >= 84 and KeyType.keyMXNavi in kline:
                                             kline = kline.strip('\n').split()
                                             yearline = (kline[0]).strip()
                                             aalist.append(yearline.strip('['))
@@ -522,7 +521,7 @@ class EmailManager:
             
 # 自动读取log中开始和结束时间并写入到testconfig文件
 def read_time_wirte_json():
-    keyMXNavi = '/usr/bin/MXNavi'
+    # keyMXNavi = '/usr/bin/MXNavi'
     tempLienNum = 0
     start_time = ''
     with open(KeyType.configJsonPath,'r',encoding='UTF-8') as c:
@@ -541,7 +540,7 @@ def read_time_wirte_json():
                         # 找到换关键字的第一行
                         with open(data_setupFilePath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
                             for line in read_file:
-                                if keyMXNavi in line:
+                                if KeyType.keyMXNavi in line:
                                     start_time = line.split()[0].strip('[') + ' ' + line.split()[1].strip(']')
                                     data_grade['startTime'] = start_time
                                     # print('开始时间：%s'%data_grade['startTime'])
@@ -552,7 +551,7 @@ def read_time_wirte_json():
                             dq = deque(read_file)
                             while dq :
                                 last_row = dq.pop()
-                                if keyMXNavi in last_row:
+                                if KeyType.keyMXNavi in last_row:
                                     end_time = last_row.split()[0].strip('[') + ' ' + last_row.split()[1].strip(']')
                                     data_grade['endTime'] = end_time
                                     # print('结束时间：%s'%data_grade['endTime'])
@@ -734,8 +733,6 @@ if __name__ == '__main__':
             <p>稳定性结果更新地址：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
             <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\Log_File">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\Log_File</a></p>
             '''
-            mail_Pass_regulator = 'sunc@meixing.com'
-
             manager = EmailManager(mail_Pass_regulator,mail_full_pass,mailMsg,mailTitle,Files)
             manager.sendEmail()
         else :
