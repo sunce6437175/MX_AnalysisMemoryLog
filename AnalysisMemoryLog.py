@@ -117,21 +117,26 @@ class Analysism:
                             continue
                         else:
                             a = xline.split()
+                            
                             if len(a) > 5 :
-                                b = a[5]
-                                if int(b[:-1]) == int(self.KPI):
-                                    surpassDay = str((a[0]).strip('['))
-                                    surpassHour = (a[1])
-                                    surpassStr = (surpassDay + ' '+ surpassHour).rsplit(']')
-                                    surpassTime = datetime.datetime.strptime((surpassStr[0]).replace("/",'-'),"%Y-%m-%d %H:%M:%S")
-                                    # print("开始超过 %sMB 的时间戳为 %s"%(1024,a[0] + a[1]))
-                                    Analysism.timestamp.append("开始超过 %dMB 的时间戳为 %s"%(self.KPI,a[0] + ' ' + a[1]))
-                                    Analysism.surpassTimeS = ((vSt - surpassTime).seconds)/3600
-                                    # print("导航放置 %.2f 小时到达 %s MB"%(surpassTimeS,self.kPI))
-                                    # Analysism.error_running_time.append("超过%dMB的时间戳为%s/导航放置%.2f小时到达%dMB"%(self.KPI,a[0] + ' ' +a[1],surpassTimeS,self.KPI))
-                                    break
+                                if KeyType.keyMXNavi in a:
+                                    b = a[5]
+                                    if int(b[:-1]) >= int(self.KPI):
+                                        surpassDay = str((a[0]).strip('['))
+                                        surpassHour = (a[1])
+                                        surpassStr = (surpassDay + ' '+ surpassHour).rsplit(']')
+                                        surpassTime = datetime.datetime.strptime((surpassStr[0]).replace("/",'-'),"%Y-%m-%d %H:%M:%S")
+
+                                        Analysism.timestamp.append(a[0] + ' ' + a[1])
+                                        Analysism.surpassTimeS = ((surpassTime - vSt).seconds)/3600
+
+                                        # print("导航放置 %.2f 小时到达 %s MB"%(surpassTimeS,self.kPI))
+                                        Analysism.error_running_time.append("超过%dMB的时间戳为%s/导航放置%.2f小时到达%dMB"%(self.KPI,a[0] + ' ' +a[1],Analysism.surpassTimeS,self.KPI))
+                                        break
+                                    else:
+                                        pass
                                 else:
-                                    pass
+                                    print("无效数据%s"%(a))
                             else :
                                 print("该行数的超过边界小于5的所在行%s"%(a))
 
@@ -172,8 +177,13 @@ class Analysism:
                         else:
                             a = xline.split()
                             if len(a) > 5 :
-                                b = a[5]
-                                tempList.append(int(b[:-1]))
+                                if KeyType.keyMXNavi in a:
+                                    b = a[5]
+                                    tempList.append(int(b[:-1]))
+                                else:
+                                    pass
+                            else:
+                                pass
                     else:
                         pass
                     tempNum = tempNum + 1
@@ -196,7 +206,8 @@ class Analysism:
             print("实现场景1：判断峰值和结束已超1024MB")
             self.write_to_time()
             Analysism.sheetNameList.append(self.name)
-            Analysism.error_running_time.append("超过%dMB的时间戳为%s/导航放置%.2f小时到达%dMB"%(self.KPI,a[0] + ' ' +a[1],Analysism.surpassTimeS,self.KPI))
+            # 不准确待验证,会循环添加有问题
+            # Analysism.error_running_time.append("超过%dMB的时间戳为%s/导航放置%.2f小时到达%dMB"%(self.KPI,Analysism.timestamp,Analysism.surpassTimeS,self.KPI))
             if self.pState == 'normal':
                 Analysism.test_Result = 'NG'
                 Analysism.test_Result_status.append(Analysism.test_Result) 
