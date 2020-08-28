@@ -245,7 +245,8 @@ class Analysism:
                                 # print("1000<=X<1024 所在行位置： %s  的行数 = %d"%(sa,i+1))
                                 b = b+1
                             else:
-                                print("不在1000<=X<1024范围内")
+                                pass
+                                # print("不在1000<=X<1024范围内")
                         else:
                             print("！输入参数错误！")
                         stempNum = stempNum + 1
@@ -268,6 +269,9 @@ class Analysism:
                                 Analysism.test_Result_status.append(Analysism.test_Result) 
                         else:
                             print("未实现场景2：未超1024MB，但长时间保持在1000MB，也就是在1000-1024之间长时间保持未≥%ss "%self.divide_The_Time)
+                            if self.pState == 'normal':
+                                Analysism.test_Result = 'OK'
+                                Analysism.test_Result_status.append(Analysism.test_Result) 
                             
         # 实现场景3：内存一直未超1000MB,但开始与结束的落差值在xxx（divide_The_Value =300mb,后期改为可配置在json文件中）
         elif mNum < int(self.secondaryMaximum) and (int(eNum) - int(sNum)) >= int(self.divide_The_Value) :
@@ -299,7 +303,7 @@ class Analysism:
                 Analysism.test_Result_status.append(Analysism.test_Result)
 
             print("实现场景4：本次内存峰值和结束值不存在超%sMB的测试场景"%(self.KPI))
-        
+
         return(self.readPath,self.writePath,Analysism.starNumlist,Analysism.endNumlist,Analysism.maxNumlist,Analysism.test_Result_status,Analysism.divide_Time_list)
     # 创建出现问题sheet数量
     def write_to_time(self):
@@ -742,7 +746,8 @@ if __name__ == '__main__':
             <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\Log_File">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\Log_File</a></p>
             '''
 
-            manager = EmailManager(mail_Pass_regulator,mail_full_pass,mailMsg,mailTitle,Files[1])
+            okFiles = Files[1]
+            manager = EmailManager(mail_Pass_regulator,mail_full_pass,mailMsg,mailTitle,okFiles)
             manager.sendEmail()
         else :
             print('今天 %s 是节假日,无需发邮件'%daytime)
