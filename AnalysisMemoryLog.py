@@ -502,19 +502,32 @@ class EmailManager:
 
         msg.attach(MIMEText(mail_msg, 'html', 'utf-8'))
         #发送带有多个Excel附件
-        for filepath in files_Path:
-            ctype, encoding = mimetypes.guess_type(filepath)
+        if isinstance(files_Path,list):
+            for filepath in files_Path:
+                ctype, encoding = mimetypes.guess_type(filepath)
+                if ctype is None or encoding is not None: 
+                    ctype = "application/octet-stream"
+                maintype, subtype = ctype.split("/", 1)
+                if maintype in['image','audio']:
+                    add_attachment(filepath)
+                else:
+
+                    baseName = os.path.basename(filepath) 
+                    att = MIMEApplication(open(filepath,'rb').read())
+                    att.add_header('Content-Disposition', 'attachment', filename=baseName)
+                    msg.attach(att)
+                    print(filepath, 'added')
+        else:
+            ctype, encoding = mimetypes.guess_type(files_Path)
             if ctype is None or encoding is not None: 
                 ctype = "application/octet-stream"
-            maintype, subtype = ctype.split("/", 1)
-            if maintype in['image','audio']:
-                add_attachment(filepath)
             else:
-                baseName = os.path.basename(filepath) 
-                att = MIMEApplication(open(filepath,'rb').read())
+                baseName = os.path.basename(files_Path) 
+                att = MIMEApplication(open(files_Path,'rb').read())
                 att.add_header('Content-Disposition', 'attachment', filename=baseName)
                 msg.attach(att)
-                print(filepath, 'added')
+                print(files_Path, 'added')
+
         # 指定图片为当前目录
         # fp = open(pic_path, 'rb')
         # msgImage = MIMEImage(fp.read())
@@ -718,7 +731,6 @@ if __name__ == '__main__':
             <p>稳定性结果更新地址：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
             <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\Log_File">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\Log_File</a></p>
             '''
-
             manager = EmailManager(mail_Error_Pass_str,mail_passCc_str,mailMsg,mailTitle,Files)
             manager.sendEmail()
         else :
@@ -745,7 +757,6 @@ if __name__ == '__main__':
             <p>稳定性结果更新地址：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
             <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\Log_File">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\Log_File</a></p>
             '''
-
             okFiles = Files[1]
             manager = EmailManager(mail_Pass_regulator,mail_full_pass,mailMsg,mailTitle,okFiles)
             manager.sendEmail()
