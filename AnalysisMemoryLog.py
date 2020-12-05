@@ -30,13 +30,17 @@ class KeyType:
     # #有效内容关键字
     keyMXNavi = "/usr/bin/MXNavi"
     # 最新批量json配置项 (从本地改为服务器路径)
-    configJsonName = "//192.168.2.7/BugInfo_2020(7月29日启用)/CNS3.0 Sop1.5/非功能测试结果/稳定性测试/MX_AnalysisMemoryLog/config/config.json"
+    configJsonName = "//192.168.2.22/cns3.0_sop2_ma/04.C Sample/03.非功能测试/稳定性测试/MX_AnalysisMemoryLog/config/config.json"
     # 最新批量json配置项地址获取(获取当前文件的绝对路径)
     configJsonPath = os.path.join(os.path.abspath(os.path.dirname(__file__)),configJsonName).replace("\\",'/')
     # 修改添加自动拾取时间的json配置项后写入文件 (从本地改为服务器路径)
-    testconfigJsonName = "//192.168.2.7/BugInfo_2020(7月29日启用)/CNS3.0 Sop1.5/非功能测试结果/稳定性测试/MX_AnalysisMemoryLog/config/testJson.json"
+    testconfigJsonName = "//192.168.2.22/cns3.0_sop2_ma/04.C Sample/03.非功能测试/稳定性测试/MX_AnalysisMemoryLog/config/testJson.json"
     # 修改添加自动拾取时间的json配置项后写入文件路径
     testconfigJsonPath = os.path.join(os.path.abspath(os.path.dirname(__file__)),testconfigJsonName).replace("\\",'/')
+    # 批量判断文件路径
+    timelineName = "//192.168.2.22/cns3.0_sop2_ma/04.C Sample/03.非功能测试/稳定性测试/"
+    
+    timelinePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),timelineName).replace("\\",'/')
 
 class Analysism:
     def __init__(self,name,startTime,finishTime,readPath,writePath,exclPath,KPI,secondaryMaximum,divide_The_Value,divide_The_Time,pState):
@@ -559,8 +563,15 @@ def read_time_wirte_json():
                         data_grade = data_perison["grade"]
                         data_name = data_perison["name"]
                         data_setupFileName = data_grade['setupFilePath']
-                        data_setupFilePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),data_setupFileName).replace("\\",'/')
-                    
+                        print(data_setupFileName)
+                        # data_setupFilePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),data_setupFileName).replace("\\",'/')
+                        data_setupBasePath = two_abs_join(KeyType.timelinePath,timesfile)
+                        print(data_setupBasePath)
+                        # data = two_abs_join(data_setupBasePath,data_setupFileName)
+
+                        data_grade['setupFilePath'] = two_abs_join(data_setupBasePath,data_setupFileName).replace('\\','/')
+                        data_setupFilePath = data_grade['setupFilePath']
+                        # print(data_setupFilePath)
                         # 找到换关键字的第一行
                         with open(data_setupFilePath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
                             for line in read_file:
@@ -582,10 +593,40 @@ def read_time_wirte_json():
                                     break
     with open(KeyType.testconfigJsonPath,'w',encoding="utf-8") as wr :
         json.dump(config,wr,indent=4,sort_keys=False,ensure_ascii=False)
+# 拼接路径
+def two_abs_join(abs1,abs2):
+    abs2 = os.fspath(abs2)
 
+    abs2 = os.path.splitdrive(abs2)[1]
 
+    abs2 = abs2.strip("\\/") or abs2
+    return os.fspath(os.path.join(abs1,abs2))
+# 自动创建文件夹
+def mkdir(path):
+    # 去除首位空格
+    path = path.strip()
+    # 去除尾部 \ 符号
+    path=path.rstrip("\\")
+    # 判断路径是否存在
+    # 存在     True
+    # 不存在   False
+    isExists=os.path.exists(path)
+     # 判断结果
+    if not isExists:
+        # 如果不存在则创建目录
+        # 创建目录操作函数
+        os.makedirs(path) 
+ 
+        print(path + ' 创建成功')
+        return True
+    else:
+        # 如果目录存在则不创建，并提示目录已存在
+        print(path + ' 目录已存在')
+        return False
+    
+ 
 if __name__ == '__main__':
-    read_time_wirte_json()   # 自动读取log时间，写入新json文件并运用
+
     # 获取当前时间
     daytime = datetime.datetime.now().date()
     boll = is_workday(daytime)  # 输出结果为bool值，True为工作日，False为休息日。
@@ -623,10 +664,18 @@ if __name__ == '__main__':
     mail_Error_Pass_str = ''       # 指定的报错的收件人拼成字符串格式
     mail_passCc_str = ''          # 邮件抄送人员list拼接成字符串格式
     mail_Pass_regulator = 'sunc@meixing.com'     # 邮件收件人管理者
+    mailTitle = "【CNS3.0_SOP2_MA】稳定性log分析及填写报告-反馈"
+    # 判断稳定性放置log文件夹内是否为空
+    years = datetime.datetime.now().year
+    months = datetime.datetime.now().month
+    day = datetime.datetime.now().day
+    timesfile = '20201125'
+    tname = two_abs_join(KeyType.timelinePath,timesfile)
 
-    mailTitle = "【CNS3.0_SOP1&SOP1.5】稳定性log分析及填写报告-反馈"
+    read_time_wirte_json()   # 自动读取log时间，写入新json文件并运用
 
-    # 读取json 配置文件路径
+
+     # 读取json 配置文件路径
     with open(KeyType.testconfigJsonPath,'r',encoding='UTF-8') as c:
         config = json.load(c)
         writeFileName = config['Output_Path']
@@ -690,6 +739,33 @@ if __name__ == '__main__':
             else:
                 print("不存在Output_Path和Valgrind_File文件夹")
 
+    # if len(str(day)) == 1:
+    #     day = str(0) + str(day)
+    # else:
+    #     day = str(day)
+    # timesfile  = str(years) + str(months) + day
+
+    # tname = two_abs_join(KeyType.timelinePath,timesfile)
+    # if os.path.exists(tname):
+    #     print('%s 文件夹已存在'%(tname))
+
+    # else:
+    #     print('%s 文件夹不存在'%(tname))
+    #     mkdir(tname)
+    #     mailMsg = '''
+    #         <p><b>今日文件夹已自动创建完毕，请提醒小伙伴们更新稳定性log！</b></p>
+    #         <p>稳定性结果更新地址：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
+    #         <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\Log_File">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\Log_File</a></p>
+    #         '''
+    #     manager = EmailManager(mail_Pass_regulator,mail_passCc_str,mailMsg,mailTitle,Files)
+    #     manager.sendEmail()
+    # size = os.path.getsize(tname)
+    # if size == 0:
+    #     print('%s文件夹是空的'%(tname))
+    #     # 发邮件通知大家更新
+    # else:
+    #     print('%s文件夹不是空的'%(tname))
+
     write_to_excel(namelist,readPath,writePath,timestamp,error_running_time)
     readExcel(writeWdxFielPath,wdx_sheet_name,start_time_data_year,start_time_data_hour,end_time_data_year,end_time_data_hour\
         ,data_setupFP,name_data,data_startNum,data_endNum,data_maxNum,ok_or_ng,effective_running_time,timestamp,error_running_time,divide_Time_list)
@@ -728,8 +804,8 @@ if __name__ == '__main__':
             mailMsg = '''
             <p><b>当天的稳定性log分析及填写报告已生成，请参看附件！</b></p>
             <p>稳定性测试结果存在<b><font color="red">NG</font></b>，以上收件人请注意！</p>
-            <p>稳定性结果更新地址：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
-            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\Log_File">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\Log_File</a></p>
+            <p>稳定性结果更新地址：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
+            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\Log_File">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\Log_File</a></p>
             '''
             manager = EmailManager(mail_Error_Pass_str,mail_passCc_str,mailMsg,mailTitle,Files)
             manager.sendEmail()
@@ -754,8 +830,8 @@ if __name__ == '__main__':
             mailMsg = '''
             <p><b>当天的稳定性log分析及填写报告已生成，请参看附件！</b></p>
             <p>稳定性测试结果全部<b>OK</b></p>
-            <p>稳定性结果更新地址：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
-            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\Log_File">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0 Sop1.5\非功能测试结果\稳定性测试\MX_AnalysisMemoryLog\Log_File</a></p>
+            <p>稳定性结果更新地址：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
+            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\Log_File">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\Log_File</a></p>
             '''
             okFiles = Files[1]
             manager = EmailManager(mail_Pass_regulator,mail_full_pass,mailMsg,mailTitle,okFiles)
