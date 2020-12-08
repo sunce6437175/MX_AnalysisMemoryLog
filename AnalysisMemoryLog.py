@@ -75,21 +75,24 @@ class Analysism:
 
     def check_tmpLine(self):
         tempLienNum = 0     # 标注行数
-
-        with open(self.readPath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
-            for line in read_file:
-                tempLienNum = tempLienNum + 1
-                if self.startTime in line:
-                    if KeyType.deWeightTime in line:
-                        continue
-                    else:
-                        Analysism.startLineNum = tempLienNum
-                        
-                if self.finishTime in line:
-                    if "END" in line:
-                        continue
-                    else:
-                        Analysism.finishLineNum = tempLienNum
+        if os.path.exists(self.readPath):
+            with open(self.readPath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
+                for line in read_file:
+                    tempLienNum = tempLienNum + 1
+                    if self.startTime in line:
+                        if KeyType.deWeightTime in line:
+                            continue
+                        else:
+                            Analysism.startLineNum = tempLienNum
+                            
+                    if self.finishTime in line:
+                        if "END" in line:
+                            continue
+                        else:
+                            Analysism.finishLineNum = tempLienNum
+        else:
+            print('%s 此log不存在'%(self.readPath))
+            # continue
 
         return(Analysism.startLineNum,Analysism.finishLineNum)
 
@@ -99,7 +102,6 @@ class Analysism:
         tempLienNum = 0     # 标注行数
         tempNum = 0         # 对比行数
     
-        # 由字符串格式转化为日期格式的函数为: datetime.datetime.strptime()
         vSt = datetime.datetime.strptime(self.startTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
         vFt = datetime.datetime.strptime(self.finishTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
         # print("开始时间：%s 和对应格式 %s"%(vSt,type(vSt)))
@@ -549,15 +551,18 @@ class EmailManager:
         print('邮件发送成功！')
             
 # 自动读取log中开始和结束时间并写入到testconfig文件
-def read_time_wirte_json():
+def read_time_wirte_json(loglist):
     tempLienNum = 0
     start_time = ''
+    delkeylist = []
     with open(KeyType.configJsonPath,'r',encoding='UTF-8') as c:
         config = json.load(c)
+
         for timex in (config.keys()):
             if timex != "Output_Path" and timex != "Valgrind_File" and timex != "WDX_Output_Path" and timex != "MEMkPI" \
                 and timex != "SecondaryMaximum" and timex != "DivideTheValue" and timex != "DivideTheTime" and timex != "mailpassCc":
                 data_perison = config.get(timex)
+
                 for item in data_perison.keys():
                     if item == "grade":
                         data_grade = data_perison["grade"]
@@ -573,24 +578,35 @@ def read_time_wirte_json():
                         data_setupFilePath = data_grade['setupFilePath']
                         # print(data_setupFilePath)
                         # 找到换关键字的第一行
-                        with open(data_setupFilePath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
-                            for line in read_file:
-                                if KeyType.keyMXNavi in line:
-                                    start_time = line.split()[0].strip('[') + ' ' + line.split()[1].strip(']')
-                                    data_grade['startTime'] = start_time
-                                    # print('开始时间：%s'%data_grade['startTime'])
-                                    break
-                                tempLienNum = tempLienNum + 1
-                        # 找到换关键字的最后一行
-                        with open(data_setupFilePath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
-                            dq = deque(read_file)
-                            while dq :
-                                last_row = dq.pop()
-                                if KeyType.keyMXNavi in last_row:
-                                    end_time = last_row.split()[0].strip('[') + ' ' + last_row.split()[1].strip(']')
-                                    data_grade['endTime'] = end_time
-                                    # print('结束时间：%s'%data_grade['endTime'])
-                                    break
+                        if data_setupFileName in loglist:
+                            print('1')
+                            with open(data_setupFilePath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
+                                for line in read_file:
+                                    if KeyType.keyMXNavi in line:
+                                        start_time = line.split()[0].strip('[') + ' ' + line.split()[1].strip(']')
+                                        data_grade['startTime'] = start_time
+                                        # print('开始时间：%s'%data_grade['startTime'])
+                                        break
+                                    tempLienNum = tempLienNum + 1
+                            # 找到换关键字的最后一行
+                            with open(data_setupFilePath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
+                                dq = deque(read_file)
+                                while dq :
+                                    last_row = dq.pop()
+                                    if KeyType.keyMXNavi in last_row:
+                                        end_time = last_row.split()[0].strip('[') + ' ' + last_row.split()[1].strip(']')
+                                        data_grade['endTime'] = end_time
+                                        # print('结束时间：%s'%data_grade['endTime'])
+                                        break
+                        else:
+                            delkeylist.append(timex)
+        for i in list(delkeylist):
+            if i in list(config.keys()):
+                print("删除的key : %s"%(i))
+                del config[i]
+            else:
+                print("不删除的key : %s"%(i))
+
     with open(KeyType.testconfigJsonPath,'w',encoding="utf-8") as wr :
         json.dump(config,wr,indent=4,sort_keys=False,ensure_ascii=False)
 # 拼接路径
@@ -623,15 +639,24 @@ def mkdir(path):
         # 如果目录存在则不创建，并提示目录已存在
         print(path + ' 目录已存在')
         return False
-    
- 
+# 遍历所有文件夹
+def checkFile(path):
+    a = []
+    for i in os.listdir(path):
+        path2 = os.path.join(path,i)
+        if os.path.isdir(path2):
+            checkFile(path2)
+        else:
+            # print(i)
+            a.append(i)
+    return a
+
 if __name__ == '__main__':
 
     # 获取当前时间
     daytime = datetime.datetime.now().date()
     boll = is_workday(daytime)  # 输出结果为bool值，True为工作日，False为休息日。
     
-
     wdx_sheet_name = '常规版本稳定性测试结果'
     namelist = []    # sheet页名称汇总
     readPath = ''    # 读取配置路径
@@ -665,15 +690,40 @@ if __name__ == '__main__':
     mail_passCc_str = ''          # 邮件抄送人员list拼接成字符串格式
     mail_Pass_regulator = 'sunc@meixing.com'     # 邮件收件人管理者
     mailTitle = "【CNS3.0_SOP2_MA】稳定性log分析及填写报告-反馈"
+    loglist = []                # 存在log汇总
     # 判断稳定性放置log文件夹内是否为空
     years = datetime.datetime.now().year
     months = datetime.datetime.now().month
     day = datetime.datetime.now().day
-    timesfile = '20201125'
+    if len(str(day)) == 1:
+        day = str(0) + str(day)
+    else:
+        day = str(day)
+    timesfile  = str(years) + str(months) + day
+
     tname = two_abs_join(KeyType.timelinePath,timesfile)
 
-    read_time_wirte_json()   # 自动读取log时间，写入新json文件并运用
+    if os.path.exists(tname):
+        print('%s 文件夹已存在'%(tname))
+    else:
+        print('%s 文件夹不存在'%(tname))
+        mkdir(tname)
+        mailMsg = '''
+            <p><b>今日文件夹已自动创建完毕，请提醒小伙伴们更新稳定性log！</b></p>
+            <p>稳定性结果更新地址：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
+            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\Log_File">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\Log_File</a></p>
+            '''
+        manager = EmailManager(mail_Pass_regulator,mail_passCc_str,mailMsg,mailTitle,Files)
+        manager.sendEmail()
 
+    if os.path.getsize(tname):
+        print('%s文件夹是空的'%(tname))
+        # 发邮件通知大家更新
+    else:
+        loglist = checkFile(tname)
+        print('%s文件夹不是空的'%(tname))
+        print(loglist)
+        read_time_wirte_json(loglist)   # 自动读取log时间，写入新json文件并运用
 
      # 读取json 配置文件路径
     with open(KeyType.testconfigJsonPath,'r',encoding='UTF-8') as c:
@@ -713,10 +763,11 @@ if __name__ == '__main__':
                         mail_Pass.append(mail_path)
 
                         data_startTime = data_grade['startTime']
+                        data_endTime = data_grade['endTime']
+
                         start_time_data_year.append(data_startTime.split()[0])
                         start_time_data_hour.append(data_startTime.split()[1])
-                        
-                        data_endTime = data_grade['endTime']
+
                         end_time_data_year.append(data_endTime.split()[0])
                         end_time_data_hour.append(data_endTime.split()[1])
 
@@ -739,32 +790,7 @@ if __name__ == '__main__':
             else:
                 print("不存在Output_Path和Valgrind_File文件夹")
 
-    # if len(str(day)) == 1:
-    #     day = str(0) + str(day)
-    # else:
-    #     day = str(day)
-    # timesfile  = str(years) + str(months) + day
 
-    # tname = two_abs_join(KeyType.timelinePath,timesfile)
-    # if os.path.exists(tname):
-    #     print('%s 文件夹已存在'%(tname))
-
-    # else:
-    #     print('%s 文件夹不存在'%(tname))
-    #     mkdir(tname)
-    #     mailMsg = '''
-    #         <p><b>今日文件夹已自动创建完毕，请提醒小伙伴们更新稳定性log！</b></p>
-    #         <p>稳定性结果更新地址：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
-    #         <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\Log_File">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\Log_File</a></p>
-    #         '''
-    #     manager = EmailManager(mail_Pass_regulator,mail_passCc_str,mailMsg,mailTitle,Files)
-    #     manager.sendEmail()
-    # size = os.path.getsize(tname)
-    # if size == 0:
-    #     print('%s文件夹是空的'%(tname))
-    #     # 发邮件通知大家更新
-    # else:
-    #     print('%s文件夹不是空的'%(tname))
 
     write_to_excel(namelist,readPath,writePath,timestamp,error_running_time)
     readExcel(writeWdxFielPath,wdx_sheet_name,start_time_data_year,start_time_data_hour,end_time_data_year,end_time_data_hour\
