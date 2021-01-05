@@ -8,7 +8,9 @@ import datetime
 import json
 import time
 import xlsxwriter
+import xlrd
 import openpyxl
+import xlwings as xw
 from collections import deque
 # Send txt&excel import
 import smtplib,time
@@ -20,6 +22,8 @@ from email.mime.multipart import MIMEMultipart
 from email.header import Header
 from email.mime.base import MIMEBase
 from email.mime.application import MIMEApplication
+from PIL import ImageGrab
+
 # 获取中国节假日api
 from chinese_calendar import is_workday
 
@@ -208,7 +212,7 @@ class Analysism:
         maxNum = '最大内存值: ' + str(max(tempList)) + ' MB'
 
         # 实现场景1：判断峰值或结束值是已超1024MB
-        if mNum >= int(self.KPI) and eNum >= int(self.KPI):
+        if mNum >= int(self.KPI) or eNum >= int(self.KPI):
             print("实现场景1：判断峰值和结束已超1024MB")
             self.write_to_time()
             Analysism.sheetNameList.append(self.name)
@@ -332,13 +336,14 @@ def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time
     for sheetindex in range(len(sheetnamelist)):
         index = 0 
 
-        with open(KeyType.configJsonPath,'r',encoding='UTF-8') as c:
+        with open(KeyType.testconfigJsonPath,'r',encoding='UTF-8') as c:
             config = json.load(c)
             for d in (config.keys()):
                 if d != "Output_Path" and d != "Valgrind_File" and d != "WDX_Output_Path" and d != "MEMkPI" \
                     and d != "SecondaryMaximum" and d != "DivideTheValue" and d != "DivideTheTime" and d != "mailpassCc":
                     data_perison = config.get(d)
                     for item in data_perison.keys():
+                        print(item)
                         if item == "grade":
                             data_grade = data_perison["grade"]
                             data_name = data_perison["name"]
@@ -481,6 +486,43 @@ class EmailManager:
         self.mailTitle = mailTitle
         self.filesPath = filesPath
 
+    # def excel_save_img(self,img_suffix="png"):
+    #     app = xw.App(visible=True, add_book=False)
+    #     # 1. 使用 xlwings 的 读取 path 文件 启动
+    #     wb = app.books.open(self.filesPath)
+    
+    #     # 2. 读取 sheet
+    #     sht = wb.sheets['常规版本稳定性测试结果']
+    
+    #     # 3. 获取 行与列
+    #     nrow = sht.api.UsedRange.Rows.count
+    #     ncol = sht.api.UsedRange.Columns.count
+    #     print(nrow)
+    #     print(ncol)
+    
+    #     # 4. 获取有内容的 range
+    #     range_val = sht.range(
+    #         (1, 1),  # 获取 第一行 第一列
+    #         (nrow, ncol)  # 获取 第 nrow 行 第 ncol 列
+    #     )
+    #     print(range_val.value)
+    
+    #     # 5. 复制图片区域
+    #     range_val.api.CopyPicture()
+    
+    #     # 6. 粘贴
+    #     sht.api.Paste()
+    
+    #     pic = sht.pictures[0]  # 当前图片
+    #     pic.api.Copy()  # 复制图片
+    
+    #     img = ImageGrab.grabclipboard()  # 获取剪贴板的图片数据
+    #     img.save(img_name + "." + img_suffix)  # 保存图片
+    #     pic.delete()  # 删除sheet上的图片
+    
+    #     wb.close()  # 不保存，直接关闭
+    #     app.quit()  # 退出
+
     def sendEmail(self):
         # 使用的邮箱的SMTP服务器地址
         mail_host = "192.168.2.23"
@@ -549,7 +591,7 @@ class EmailManager:
         smtp.sendmail(msg['From'],msg['To'].split(',') + msg['Cc'].split(','),msg.as_string())
         smtp.quit()
         print('邮件发送成功！')
-            
+    # excel_save_img(self,img_name='1')      
 # 自动读取log中开始和结束时间并写入到testconfig文件
 def read_time_wirte_json(loglist):
     tempLienNum = 0
@@ -647,7 +689,6 @@ def checkFile(path):
         if os.path.isdir(path2):
             checkFile(path2)
         else:
-            # print(i)
             a.append(i)
     return a
 
@@ -692,14 +733,20 @@ if __name__ == '__main__':
     mailTitle = "【CNS3.0_SOP2_MA】稳定性log分析及填写报告-反馈"
     loglist = []                # 存在log汇总
     # 判断稳定性放置log文件夹内是否为空
-    years = datetime.datetime.now().year
-    months = datetime.datetime.now().month
-    day = datetime.datetime.now().day
-    if len(str(day)) == 1:
-        day = str(0) + str(day)
-    else:
-        day = str(day)
-    timesfile  = str(years) + str(months) + day
+    # years = datetime.datetime.now().year
+    # months = datetime.datetime.now().month
+    # day = datetime.datetime.now().day
+    # if len(str(day)) == 1:
+    #     day = str(0) + str(day)
+    # else:
+    #     day = str(day)
+    # timesfile  = str(years) + str(months) + day
+
+    # 获取当前时间
+    daytime = datetime.datetime.now().date()
+
+    str_daytime = str(daytime)
+    timesfile  = str_daytime.replace('-','')
 
     tname = two_abs_join(KeyType.timelinePath,timesfile)
 
@@ -710,9 +757,10 @@ if __name__ == '__main__':
         mkdir(tname)
         mailMsg = '''
             <p><b>今日文件夹已自动创建完毕，请提醒小伙伴们更新稳定性log！</b></p>
-            <p>稳定性结果更新地址：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
-            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\Log_File">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\Log_File</a></p>
+            <p>稳定性结果更新地址：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample/03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample/03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
+            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample/03.非功能测试\稳定性测试">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample/03.非功能测试\稳定性测试\</a></p>
             '''
+
         manager = EmailManager(mail_Pass_regulator,mail_passCc_str,mailMsg,mailTitle,Files)
         manager.sendEmail()
 
@@ -790,8 +838,6 @@ if __name__ == '__main__':
             else:
                 print("不存在Output_Path和Valgrind_File文件夹")
 
-
-
     write_to_excel(namelist,readPath,writePath,timestamp,error_running_time)
     readExcel(writeWdxFielPath,wdx_sheet_name,start_time_data_year,start_time_data_hour,end_time_data_year,end_time_data_hour\
         ,data_setupFP,name_data,data_startNum,data_endNum,data_maxNum,ok_or_ng,effective_running_time,timestamp,error_running_time,divide_Time_list)
@@ -830,8 +876,8 @@ if __name__ == '__main__':
             mailMsg = '''
             <p><b>当天的稳定性log分析及填写报告已生成，请参看附件！</b></p>
             <p>稳定性测试结果存在<b><font color="red">NG</font></b>，以上收件人请注意！</p>
-            <p>稳定性结果更新地址：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
-            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\Log_File">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\Log_File</a></p>
+            <p>稳定性结果更新地址：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample/03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample/03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
+            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample/03.非功能测试\稳定性测试">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample/03.非功能测试\稳定性测试\</a></p>
             '''
             manager = EmailManager(mail_Error_Pass_str,mail_passCc_str,mailMsg,mailTitle,Files)
             manager.sendEmail()
@@ -856,8 +902,8 @@ if __name__ == '__main__':
             mailMsg = '''
             <p><b>当天的稳定性log分析及填写报告已生成，请参看附件！</b></p>
             <p>稳定性测试结果全部<b>OK</b></p>
-            <p>稳定性结果更新地址：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
-            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\Log_File">\\\\192.168.2.7\BugInfo_2020(7月29日启用)\CNS3.0_SOP2_MA\稳定性测试\MX_AnalysisMemoryLog\Log_File</a></p>
+            <p>稳定性结果更新地址：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample/03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample/03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
+            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample/03.非功能测试\稳定性测试">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample/03.非功能测试\稳定性测试\</a></p>
             '''
             okFiles = Files[1]
             manager = EmailManager(mail_Pass_regulator,mail_full_pass,mailMsg,mailTitle,okFiles)
