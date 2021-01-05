@@ -29,6 +29,8 @@ from chinese_calendar import is_workday
 
 # 配置参数路径class
 class KeyType:
+    # 空间占用关键字
+    spaceUsage = "total"
     # 搜索内存关键字
     deWeightTime = "top -m | grep MXNavi"
     # #有效内容关键字
@@ -145,10 +147,16 @@ class Analysism:
                                         break
                                     else:
                                         pass
+                                        # print("不知道啥数据%s"%(a))
+                                
                                 else:
-                                    print("无效数据%s"%(a))
-                            else :
-                                print("该行数的超过边界小于5的所在行%s"%(a))
+                                    pass
+                                    # print("无效数据%s"%(a))
+                            elif KeyType.spaceUsage in a:
+                                print(len(a))
+                                print("空间占用数据：%s"%(a))
+                                print("空间占用个数：%s"%len(a))
+                                # print("该行数的超过边界小于5的所在行%s"%(a))
 
                     else:
                         pass
@@ -157,7 +165,12 @@ class Analysism:
             pass
 
         return(Analysism.effective_running_time,Analysism.timestamp,Analysism.error_running_time)
-
+    # 判断空间占用的开始和结束及最大和平均值
+    # def check_spaceUsage(self):
+    #     """
+    #     docstring
+    #     """
+    #     pass
     # 判断内存开始和结束以及最大值
     def check_memorylog(self):
         tempLienNum = 0        # 标注行数
@@ -757,12 +770,12 @@ if __name__ == '__main__':
         mkdir(tname)
         mailMsg = '''
             <p><b>今日文件夹已自动创建完毕，请提醒小伙伴们更新稳定性log！</b></p>
-            <p>稳定性结果更新地址：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample/03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample/03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
-            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample/03.非功能测试\稳定性测试">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample/03.非功能测试\稳定性测试\</a></p>
+            <p>稳定性结果更新地址：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
+            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\3.非功能测试\稳定性测试">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\</a></p>
             '''
 
         manager = EmailManager(mail_Pass_regulator,mail_passCc_str,mailMsg,mailTitle,Files)
-        manager.sendEmail()
+        # manager.sendEmail()
 
     if os.path.getsize(tname):
         print('%s文件夹是空的'%(tname))
@@ -876,11 +889,11 @@ if __name__ == '__main__':
             mailMsg = '''
             <p><b>当天的稳定性log分析及填写报告已生成，请参看附件！</b></p>
             <p>稳定性测试结果存在<b><font color="red">NG</font></b>，以上收件人请注意！</p>
-            <p>稳定性结果更新地址：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample/03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample/03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
-            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample/03.非功能测试\稳定性测试">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample/03.非功能测试\稳定性测试\</a></p>
+            <p>稳定性结果更新地址：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
+            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\</a></p>
             '''
             manager = EmailManager(mail_Error_Pass_str,mail_passCc_str,mailMsg,mailTitle,Files)
-            manager.sendEmail()
+            # manager.sendEmail()
         else :
             print('今天 %s 是节假日,无需发邮件'%daytime)
     else:
@@ -902,12 +915,12 @@ if __name__ == '__main__':
             mailMsg = '''
             <p><b>当天的稳定性log分析及填写报告已生成，请参看附件！</b></p>
             <p>稳定性测试结果全部<b>OK</b></p>
-            <p>稳定性结果更新地址：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample/03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample/03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
-            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample/03.非功能测试\稳定性测试">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample/03.非功能测试\稳定性测试\</a></p>
+            <p>稳定性结果更新地址：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
+            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\</a></p>
             '''
             okFiles = Files[1]
             manager = EmailManager(mail_Pass_regulator,mail_full_pass,mailMsg,mailTitle,okFiles)
-            manager.sendEmail()
+            # manager.sendEmail()
         else :
             print('今天 %s 是节假日,无需发邮件'%daytime)
 
