@@ -49,7 +49,7 @@ class KeyType:
     timelinePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),timelineName).replace("\\",'/')
 
 class Analysism:
-    def __init__(self,name,startTime,finishTime,readPath,writePath,exclPath,KPI,secondaryMaximum,divide_The_Value,divide_The_Time,pState):
+    def __init__(self,name,startTime,finishTime,readPath,writePath,exclPath,KPI,secondaryMaximum,divide_The_Value,divide_The_Time,pState,SpaceUsageKPI):
         self.name = name
         self.startTime = startTime
         self.finishTime = finishTime
@@ -61,6 +61,7 @@ class Analysism:
         self.divide_The_Value = divide_The_Value
         self.divide_The_Time = divide_The_Time
         self.pState = pState
+        self.SpaceUsageKPI = SpaceUsageKPI
 
     startLineNum = 0    # 开始行数
     finishLineNum = 0   # 结束行数
@@ -78,6 +79,8 @@ class Analysism:
     error_running_time = []       #（超1G达到时间 和 第一次超1G的时间戳 + 当在1000-1024之间长时间保持 + 未超1G但开始结束的落差值在300MB以上）  
     divide_Time_list = []         #超过在1000 - 1024之间的连续时间耗时
     surpassTimeS = 0              #超过在1024放置时间
+    spaceUsageList = []         #空间占用
+    spaceUsageNum = []
 
     def check_tmpLine(self):
         tempLienNum = 0     # 标注行数
@@ -153,10 +156,12 @@ class Analysism:
                                     pass
                                     # print("无效数据%s"%(a))
                             elif KeyType.spaceUsage in a:
-                                print(len(a))
-                                print("空间占用数据：%s"%(a))
-                                print("空间占用个数：%s"%len(a))
+                                c = a[2]
+                                Analysism.spaceUsageList.append(int(c)/1024/1024)
+                                # print("空间占用数据：%s"%(a))
+                                # print("空间占用个数：%s"%len(a))
                                 # print("该行数的超过边界小于5的所在行%s"%(a))
+
 
                     else:
                         pass
@@ -164,13 +169,50 @@ class Analysism:
         else:
             pass
 
-        return(Analysism.effective_running_time,Analysism.timestamp,Analysism.error_running_time)
+        return(Analysism.effective_running_time,Analysism.timestamp,Analysism.error_running_time,Analysism.spaceUsageList)
     # 判断空间占用的开始和结束及最大和平均值
-    # def check_spaceUsage(self):
-    #     """
-    #     docstring
-    #     """
-    #     pass
+    def check_spaceUsage(self):
+        tempLienNum = 0        # 标注行数
+        tempList = []          # 标注列表
+        tempNum = 0            # 对比行数
+        KPIList = []         # 获取超KPI的数据列表
+        stempList = []
+        stmpLine = Analysism.spaceUsageList      # 调用父类check_tmpLine方法并赋值起始行，防止初始化循环调用
+
+        tempList = stmpLine
+        startNum = float('%.2f' %(tempList[0]))
+        endNum = float('%.2f' %(tempList[-1]))
+        maxNum = float('%.2f' %(max(tempList))) 
+
+        startNumstr = '开始占用空间' + str(tempList[0]) + ' GB'
+        endNumstr = '结束占用空间' + str(tempList[-1]) + ' GB'
+        maxNumastr = '最大占用空间' + str(max(tempList)) + ' GB'
+
+        Analysism.spaceUsageNum.append(max(tempList))
+        if maxNum >= float(self.SpaceUsageKPI) :
+            # print("空间占用NG %s"%(maxNum))
+            with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
+                for xline in read_file:
+                    xline = xline.strip('\n')
+
+                    if KeyType.deWeightTime in xline:
+                        continue
+                    else:
+                        a = xline.split()
+                        if len(a) < 5 :
+                            if KeyType.spaceUsage in a:
+                                b = float(a[2])/1024/1024
+                                
+                                if b >= float(self.SpaceUsageKPI):
+                                    print("超%s的所行%s 和大小值%.2f"%(self.SpaceUsageKPI,int(tempLienNum),b))
+                                else:
+                                    continue
+                    tempLienNum = tempLienNum + 1
+
+
+        return (Analysism.spaceUsageNum)
+
+
     # 判断内存开始和结束以及最大值
     def check_memorylog(self):
         tempLienNum = 0        # 标注行数
@@ -431,7 +473,7 @@ def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time
 
 # 自定义生成汇总Excel表格（已稳定性结果为模板）读已知文档
 def readExcel(data_wdx_path,sheet_name,startTimeyear,startTimehour,endTimeyear,endTimehour,dataPath,name_data,data_startNum,data_endNum,\
-    data_maxNum,test_Result,effective_running_time,timestamp,error_running_time,divide_Time_list):
+    data_maxNum,test_Result,effective_running_time,timestamp,error_running_time,divide_Time_list,Space_occupation_Value):
     oldwb = openpyxl.load_workbook(data_wdx_path)
     oldws = oldwb[sheet_name]
     # 添加备注信息（超1000-1024之间的保持耗时）   暂时取消与36列备注信息和平统计
@@ -450,6 +492,10 @@ def readExcel(data_wdx_path,sheet_name,startTimeyear,startTimehour,endTimeyear,e
     for i in range(1,len(startTimehour)+1):
         startTime = startTimehour[i-1]
         oldws.cell(row = i + 4,column = 25).value = startTime
+    # 添加开始内存
+    for i in range(1,len(data_startNum)+1):
+        datastart = data_startNum[i-1]
+        oldws.cell(row = i + 4,column = 26).value = datastart
     # 添加结束日期
     for i in range(1,len(endTimeyear)+1):
         startTime = endTimeyear[i-1]
@@ -458,18 +504,6 @@ def readExcel(data_wdx_path,sheet_name,startTimeyear,startTimehour,endTimeyear,e
     for i in range(1,len(endTimehour)+1):
         startTime = endTimehour[i-1]
         oldws.cell(row = i + 4,column = 28).value = startTime
-    # 添加log路径
-    for i in range(1,len(dataPath)+1):
-        logpath = dataPath[i-1]
-        oldws.cell(row = i + 4,column = 32).value = logpath
-    # 添加测试人员姓名（英文）
-    for i in range(1,len(name_data)+1):
-        name = name_data[i-1]
-        oldws.cell(row = i + 4,column = 37).value = name
-    # 添加开始内存
-    for i in range(1,len(data_startNum)+1):
-        datastart = data_startNum[i-1]
-        oldws.cell(row = i + 4,column = 26).value = datastart
     # 添加结束内存
     for i in range(1,len(data_endNum)+1):
         dataend = data_endNum[i-1]
@@ -478,14 +512,26 @@ def readExcel(data_wdx_path,sheet_name,startTimeyear,startTimehour,endTimeyear,e
     for i in range(1,len(data_maxNum)+1):
         datamax = data_maxNum[i-1]
         oldws.cell(row = i + 4,column = 31).value = datamax
+    # 添加空间占用峰值
+    for i in range(1,len(Space_occupation_Value)+1):
+        spcmax = Space_occupation_Value[i-1]
+        oldws.cell(row = i + 4,column = 32).value = spcmax
+    # 添加log路径
+    for i in range(1,len(dataPath)+1):
+        logpath = dataPath[i-1]
+        oldws.cell(row = i + 4,column = 33).value = logpath
     # 添加测试结果状态
     for i in range(1,len(test_Result)+1):
         datatest = test_Result[i-1]
-        oldws.cell(row = i + 4,column = 34).value = datatest
+        oldws.cell(row = i + 4,column = 35).value = datatest
     # 添加备注信息（超1G达到时间 和 第一次超1G的时间戳 + 当在1000-1024之间长时间保持 + 未超1G但开始结束的落差值在300MB以上）  
     for i in range(1,len(error_running_time)+1):
         datatest = (error_running_time[i-1])
-        oldws.cell(row = i + 4,column = 36).value = datatest[:-1]
+        oldws.cell(row = i + 4,column = 37).value = datatest[:-1]
+    # 添加测试人员姓名（英文）
+    for i in range(1,len(name_data)+1):
+        name = name_data[i-1]
+        oldws.cell(row = i + 4,column = 38).value = name
 
     oldwb.save(data_wdx_path)
     print('--write_to_excel-路径-%s'%data_wdx_path)
@@ -615,8 +661,9 @@ def read_time_wirte_json(loglist):
 
         for timex in (config.keys()):
             if timex != "Output_Path" and timex != "Valgrind_File" and timex != "WDX_Output_Path" and timex != "MEMkPI" \
-                and timex != "SecondaryMaximum" and timex != "DivideTheValue" and timex != "DivideTheTime" and timex != "mailpassCc":
-                data_perison = config.get(timex)
+                and timex != "SecondaryMaximum" and timex != "DivideTheValue" and timex != "DivideTheTime" and timex != "mailpassCc" \
+                and timex !="SpaceUsageKPI":
+                data_perison = config.get(timex) 
 
                 for item in data_perison.keys():
                     if item == "grade":
@@ -730,6 +777,10 @@ if __name__ == '__main__':
     mail_path = []                            # 放置测试人员邮件收集
     placingState = []                        # 测试结果状态收集
 
+    Space_occupation_field = []              # 空间占用收集
+    # Space_occupation_Value = ''               # 空间占用最大值
+    # Space_occupation_Value_Str = ''           # 空间占用最大值 + 描述
+    Space_occupation_Value = []
     effective_running_time = []
     timestamp = ()
     error_running_time = ()
@@ -775,7 +826,7 @@ if __name__ == '__main__':
             '''
 
         manager = EmailManager(mail_Pass_regulator,mail_passCc_str,mailMsg,mailTitle,Files)
-        # manager.sendEmail()
+        manager.sendEmail()
 
     if os.path.getsize(tname):
         print('%s文件夹是空的'%(tname))
@@ -813,7 +864,8 @@ if __name__ == '__main__':
             os.makedirs(config['Output_Path'])
         for d in (config.keys()):
             if d != "Output_Path" and d != "Valgrind_File" and d != "WDX_Output_Path" and d != "MEMkPI" \
-                and d != "SecondaryMaximum" and d != "DivideTheValue" and d != "DivideTheTime" and d != "mailpassCc":
+                and d != "SecondaryMaximum" and d != "DivideTheValue" and d != "DivideTheTime" and d != "mailpassCc" \
+                and d !="SpaceUsageKPI":
                 data_perison = config.get(d)
                 for item in data_perison.keys():
                     if item == "grade":
@@ -839,9 +891,10 @@ if __name__ == '__main__':
                         print(data_setupFileName)
 
                         persion = Analysism(data_name,data_startTime,data_endTime,data_setupFilePath,writeFileName,config['Valgrind_File'],MEMKPI \
-                            ,config['SecondaryMaximum'],config['DivideTheValue'],config['DivideTheTime'],placingState)
+                            ,config['SecondaryMaximum'],config['DivideTheValue'],config['DivideTheTime'],placingState,config['SpaceUsageKPI'])
                         persion.check_tmpLine()
-                        effective_running_time,timestamp,error_running_time = persion.check_memoryTime()
+                        effective_running_time,timestamp,error_running_time,Space_occupation_field = persion.check_memoryTime()
+                        Space_occupation_Value = persion.check_spaceUsage()
                         readPath,writePath,data_startNum,data_endNum,data_maxNum,ok_or_ng,divide_Time_list = persion.check_memorylog()
                         namelist = persion.write_to_time()
                         print('出现问题的最终名单：%s'%namelist)
@@ -853,7 +906,8 @@ if __name__ == '__main__':
 
     write_to_excel(namelist,readPath,writePath,timestamp,error_running_time)
     readExcel(writeWdxFielPath,wdx_sheet_name,start_time_data_year,start_time_data_hour,end_time_data_year,end_time_data_hour\
-        ,data_setupFP,name_data,data_startNum,data_endNum,data_maxNum,ok_or_ng,effective_running_time,timestamp,error_running_time,divide_Time_list)
+        ,data_setupFP,name_data,data_startNum,data_endNum,data_maxNum,ok_or_ng,effective_running_time,timestamp,error_running_time\
+        ,divide_Time_list,Space_occupation_Value)
 
     # 收件人与抄送人自动判断,判断后并发送结果
     if namelist :
@@ -893,7 +947,7 @@ if __name__ == '__main__':
             <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\</a></p>
             '''
             manager = EmailManager(mail_Error_Pass_str,mail_passCc_str,mailMsg,mailTitle,Files)
-            # manager.sendEmail()
+            manager.sendEmail()
         else :
             print('今天 %s 是节假日,无需发邮件'%daytime)
     else:
@@ -920,7 +974,7 @@ if __name__ == '__main__':
             '''
             okFiles = Files[1]
             manager = EmailManager(mail_Pass_regulator,mail_full_pass,mailMsg,mailTitle,okFiles)
-            # manager.sendEmail()
+            manager.sendEmail()
         else :
             print('今天 %s 是节假日,无需发邮件'%daytime)
 
