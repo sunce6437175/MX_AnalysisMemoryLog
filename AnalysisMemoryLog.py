@@ -581,7 +581,8 @@ class EmailManager:
     
     #     wb.close()  # 不保存，直接关闭
     #     app.quit()  # 退出
-
+    
+    # 发邮件
     def sendEmail(self):
         # 使用的邮箱的SMTP服务器地址
         mail_host = "192.168.2.23"
@@ -822,7 +823,7 @@ if __name__ == '__main__':
         mailMsg = '''
             <p><b>今日文件夹已自动创建完毕，请提醒小伙伴们更新稳定性log！</b></p>
             <p>稳定性结果更新地址：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
-            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\3.非功能测试\稳定性测试">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\</a></p>
+            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\</a></p>
             '''
 
         manager = EmailManager(mail_Pass_regulator,mail_passCc_str,mailMsg,mailTitle,Files)
