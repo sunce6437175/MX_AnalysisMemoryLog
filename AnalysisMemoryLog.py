@@ -110,7 +110,7 @@ class Analysism:
         tempList = []       # 标注列表
         tempLienNum = 0     # 标注行数
         tempNum = 0         # 对比行数
-    
+
         vSt = datetime.datetime.strptime(self.startTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
         vFt = datetime.datetime.strptime(self.finishTime.replace("/",'-'),"%Y-%m-%d %H:%M:%S")
         # print("开始时间：%s 和对应格式 %s"%(vSt,type(vSt)))
@@ -208,7 +208,9 @@ class Analysism:
                                 else:
                                     continue
                     tempLienNum = tempLienNum + 1
-
+        print(startNumstr)
+        print(endNumstr)
+        print(maxNumastr)
 
         return (Analysism.spaceUsageNum)
 
@@ -686,10 +688,13 @@ def read_time_wirte_json(loglist):
                             with open(data_setupFilePath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
                                 for line in read_file:
                                     if KeyType.keyMXNavi in line:
-                                        start_time = line.split()[0].strip('[') + ' ' + line.split()[1].strip(']')
-                                        data_grade['startTime'] = start_time
-                                        # print('开始时间：%s'%data_grade['startTime'])
-                                        break
+                                        if ':' in line:
+                                            start_time = line.split()[0].strip('[') + ' ' + line.split()[1].strip(']')
+                                            data_grade['startTime'] = start_time
+                                            # print('开始时间：%s'%data_grade['startTime'])
+                                            break
+                                        else:
+                                            pass
                                     tempLienNum = tempLienNum + 1
                             # 找到换关键字的最后一行
                             with open(data_setupFilePath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
