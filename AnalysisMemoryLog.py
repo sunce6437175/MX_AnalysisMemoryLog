@@ -406,7 +406,6 @@ def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time
                     and d != "SpaceUsageKPI" :
                     data_perison = config.get(d)
                     for item in data_perison.keys():
-                        print(item)
                         if item == "grade":
                             data_grade = data_perison["grade"]
                             data_name = data_perison["name"]
@@ -822,12 +821,10 @@ if __name__ == '__main__':
     daytime = datetime.datetime.now().date()
 
     str_daytime = str(daytime)
-    # timesfile  = str_daytime.replace('-','')
-    timesfile = '20210119'
+    timesfile  = str_daytime.replace('-','')
+
     tname = two_abs_join(KeyType.timelinePath,timesfile)
-    print('---------------------------------------')
-    print(tname)
-    print('---------------------------------------')
+
     if os.path.exists(tname):
         print('%s 文件夹已存在'%(tname))
     else:
