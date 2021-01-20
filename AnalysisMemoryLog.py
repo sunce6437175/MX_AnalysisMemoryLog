@@ -136,22 +136,24 @@ class Analysism:
                             if len(a) > 5 :
                                 if KeyType.keyMXNavi in a:
                                     b = a[5]
-                                    if int(b[:-1]) >= int(self.KPI):
-                                        surpassDay = str((a[0]).strip('['))
-                                        surpassHour = (a[1])
-                                        surpassStr = (surpassDay + ' '+ surpassHour).rsplit(']')
-                                        surpassTime = datetime.datetime.strptime((surpassStr[0]).replace("/",'-'),"%Y-%m-%d %H:%M:%S")
+                                    if len(b) >= 3 :
+                                        if int(b[:-1]) >= int(self.KPI):
+                                            surpassDay = str((a[0]).strip('['))
+                                            surpassHour = (a[1])
+                                            surpassStr = (surpassDay + ' '+ surpassHour).rsplit(']')
+                                            surpassTime = datetime.datetime.strptime((surpassStr[0]).replace("/",'-'),"%Y-%m-%d %H:%M:%S")
 
-                                        Analysism.timestamp.append(a[0] + ' ' + a[1])
-                                        Analysism.surpassTimeS = ((surpassTime - vSt).seconds)/3600
+                                            Analysism.timestamp.append(a[0] + ' ' + a[1])
+                                            Analysism.surpassTimeS = ((surpassTime - vSt).seconds)/3600
 
-                                        # print("导航放置 %.2f 小时到达 %s MB"%(surpassTimeS,self.kPI))
-                                        Analysism.error_running_time.append("超过%dMB的时间戳为%s/导航放置%.2f小时到达%dMB"%(self.KPI,a[0] + ' ' +a[1],Analysism.surpassTimeS,self.KPI))
-                                        break
+                                            # print("导航放置 %.2f 小时到达 %s MB"%(surpassTimeS,self.kPI))
+                                            Analysism.error_running_time.append("超过%dMB的时间戳为%s/导航放置%.2f小时到达%dMB"%(self.KPI,a[0] + ' ' +a[1],Analysism.surpassTimeS,self.KPI))
+                                            break
+                                        else:
+                                            pass
+                                            # print("不知道啥数据%s"%(a))
                                     else:
-                                        pass
-                                        # print("不知道啥数据%s"%(a))
-                                
+                                        print("内存数据不满足4位")
                                 else:
                                     pass
                                     # print("无效数据%s"%(a))
@@ -245,8 +247,11 @@ class Analysism:
                             a = xline.split()
                             if len(a) > 5 :
                                 if KeyType.keyMXNavi in a:
-                                    b = a[5]
-                                    tempList.append(int(b[:-1]))
+                                    if len(a[5]) >=4 :
+                                        b = a[5]
+                                        tempList.append(int(b[:-1]))
+                                    else:
+                                        print("内存数据不满足4位")
                                 else:
                                     pass
                             else:
@@ -397,7 +402,8 @@ def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time
             config = json.load(c)
             for d in (config.keys()):
                 if d != "Output_Path" and d != "Valgrind_File" and d != "WDX_Output_Path" and d != "MEMkPI" \
-                    and d != "SecondaryMaximum" and d != "DivideTheValue" and d != "DivideTheTime" and d != "mailpassCc":
+                    and d != "SecondaryMaximum" and d != "DivideTheValue" and d != "DivideTheTime" and d != "mailpassCc" \
+                    and d != "SpaceUsageKPI" :
                     data_perison = config.get(d)
                     for item in data_perison.keys():
                         print(item)
@@ -816,10 +822,12 @@ if __name__ == '__main__':
     daytime = datetime.datetime.now().date()
 
     str_daytime = str(daytime)
-    timesfile  = str_daytime.replace('-','')
-
+    # timesfile  = str_daytime.replace('-','')
+    timesfile = '20210119'
     tname = two_abs_join(KeyType.timelinePath,timesfile)
-
+    print('---------------------------------------')
+    print(tname)
+    print('---------------------------------------')
     if os.path.exists(tname):
         print('%s 文件夹已存在'%(tname))
     else:
@@ -919,7 +927,8 @@ if __name__ == '__main__':
     if namelist :
         for d in (config.keys()):
             if d != "Output_Path" and d != "Valgrind_File" and d != "WDX_Output_Path" and d != "MEMkPI" \
-                and d != "SecondaryMaximum" and d != "DivideTheValue" and d != "DivideTheTime" and d != "mailpassCc":
+                and d != "SecondaryMaximum" and d != "DivideTheValue" and d != "DivideTheTime" and d != "mailpassCc" \
+                and d != "SpaceUsageKPI":
                 data_perison = config.get(d)
                 for item in data_perison.keys():
                     if item == "grade":
