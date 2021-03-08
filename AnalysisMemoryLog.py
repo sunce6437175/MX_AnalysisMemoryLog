@@ -493,10 +493,6 @@ def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time
 #         oldws.cell(row = i + 4,column = 23).value = datatime
 #     oldws.cell(row = i + 4,column = 3).value = datatime
 
-
-
-
-
 #     oldwb.save(data_wdx_path)
 #     print('--write_to_excel-路径-%s'%data_wdx_path)
 
