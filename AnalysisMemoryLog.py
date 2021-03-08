@@ -305,7 +305,9 @@ class Analysism:
                     b = 0
                     for sline in read_file:
                         sline = sline.strip('\n')
-                        if stempNum >= stmpLine and stempNum < ftmpLine:
+                        if KeyType.spaceUsage in sline:
+                            break
+                        elif stempNum >= stmpLine and stempNum < ftmpLine:
                             sa = sline.split()
                             sb = sa[5]
                             stempNumOneT = int(sb[:-1])
@@ -477,6 +479,26 @@ def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time
                                 workbooksheet.insert_chart('E2',chart_col,{'x_offset':25,'y_offset':10})
 
     workbook.close() 
+
+
+
+
+# 汇总Excel表格初始化
+# def initializeReadExcel(data_wdx_path,sheet_name,startTimeyear,startTimehour,endTimeyear,endTimehour,dataPath,name_data,data_startNum,data_endNum,\
+#     data_maxNum,test_Result,effective_running_time,timestamp,error_running_time,divide_Time_list,Space_occupation_Value):
+#     oldwb = openpyxl.load_workbook(data_wdx_path)
+#     oldws = oldwb[sheet_name]
+#     for i in range(1,len(effective_running_time)+1):
+#         datatime = effective_running_time[i-1]
+#         oldws.cell(row = i + 4,column = 23).value = datatime
+#     oldws.cell(row = i + 4,column = 3).value = datatime
+
+
+
+
+
+#     oldwb.save(data_wdx_path)
+#     print('--write_to_excel-路径-%s'%data_wdx_path)
 
 # 自定义生成汇总Excel表格（已稳定性结果为模板）读已知文档
 def readExcel(data_wdx_path,sheet_name,startTimeyear,startTimehour,endTimeyear,endTimehour,dataPath,name_data,data_startNum,data_endNum,\
