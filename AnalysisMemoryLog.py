@@ -23,9 +23,9 @@ from email.header import Header
 from email.mime.base import MIMEBase
 from email.mime.application import MIMEApplication
 from PIL import ImageGrab
-
 # 获取中国节假日api
 from chinese_calendar import is_workday
+# form se
 
 # 配置参数路径class
 class KeyType:
@@ -418,15 +418,17 @@ def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time
                             originalname = data_setupFileName
 
                             if data_name == sheetnamelist[sheetindex]:
+                                print(data_setupFilePath)
                                 with open(data_setupFilePath,'r',encoding='UTF-8',errors="ignore") as readline:
                                     aalist = []
                                     bblist = []
                                     fflist = []
-
+                                    print
                                     for kline in readline:
+                                        
                                         if "BEGIN" in kline:
                                             continue
-                                        elif len(kline) >= 84 and KeyType.keyMXNavi in kline:
+                                        elif KeyType.keyMXNavi in kline:
                                             kline = kline.strip('\n').split()
                                             yearline = (kline[0]).strip()
                                             aalist.append(yearline.strip('['))
@@ -440,7 +442,8 @@ def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time
                                         elif "END" in kline:
                                             continue
                                         else:
-                                            print("数据不满足84位==%s，且不是正确有效数据"%(kline))
+                                            pass
+                                            # print("数据中包含/usr/bin/MXNavi ======%s"%(kline))
                                 workbooksheet = workbook.add_worksheet(sheetnamelist[sheetindex])
                                 workbooksheet.write_row('A1',headings)
                                 # 可变对象转换为不可变对应作为函数的默认值（字典,集合,列表等等对象是不适合作为函数默认值的）
@@ -451,6 +454,7 @@ def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time
                                 workbooksheet.write_column('B2',blist)
                                 workbooksheet.write_column('C2',flist)
                                 workbooksheet.write('D1',originalname )
+                                print(originalname)
 
                                 index += 1  
                                 #加入数据分析曲线图 
@@ -480,21 +484,23 @@ def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time
 
     workbook.close() 
 
-
+# 访问腾讯在线文档获取数据 【腾讯文档】MX稳定性测试前提条件
+# https://docs.qq.com/sheet/DSlRGSklJc1ZYdW5q
 
 
 # 汇总Excel表格初始化
-# def initializeReadExcel(data_wdx_path,sheet_name,startTimeyear,startTimehour,endTimeyear,endTimehour,dataPath,name_data,data_startNum,data_endNum,\
-#     data_maxNum,test_Result,effective_running_time,timestamp,error_running_time,divide_Time_list,Space_occupation_Value):
-#     oldwb = openpyxl.load_workbook(data_wdx_path)
-#     oldws = oldwb[sheet_name]
-#     for i in range(1,len(effective_running_time)+1):
-#         datatime = effective_running_time[i-1]
-#         oldws.cell(row = i + 4,column = 23).value = datatime
-#     oldws.cell(row = i + 4,column = 3).value = datatime
+def initializeReadExcel(data_wdx_path,sheet_name,startTimeyear,startTimehour,endTimeyear,endTimehour,dataPath,name_data,data_startNum,data_endNum,\
+    data_maxNum,test_Result,effective_running_time,timestamp,error_running_time,divide_Time_list,Space_occupation_Value):
+    oldwb = openpyxl.load_workbook(data_wdx_path)
+    oldws = oldwb[sheet_name]
+    # 清空运行耗时之前备注的所以写入信息
+    for row in oldws['C5:V13']:
+        for cell in row:
+            cell.value = ''
 
-#     oldwb.save(data_wdx_path)
-#     print('--write_to_excel-路径-%s'%data_wdx_path)
+    oldwb.save(data_wdx_path)
+    oldwb.close()
+    print('--write_to_excel-路径-%s'%data_wdx_path)
 
 # 自定义生成汇总Excel表格（已稳定性结果为模板）读已知文档
 def readExcel(data_wdx_path,sheet_name,startTimeyear,startTimehour,endTimeyear,endTimehour,dataPath,name_data,data_startNum,data_endNum,\
@@ -934,6 +940,9 @@ if __name__ == '__main__':
                 print("不存在Output_Path和Valgrind_File文件夹")
 
     write_to_excel(namelist,readPath,writePath,timestamp,error_running_time)
+    initializeReadExcel(writeWdxFielPath,wdx_sheet_name,start_time_data_year,start_time_data_hour,end_time_data_year,end_time_data_hour\
+        ,data_setupFP,name_data,data_startNum,data_endNum,data_maxNum,ok_or_ng,effective_running_time,timestamp,error_running_time\
+        ,divide_Time_list,Space_occupation_Value)
     readExcel(writeWdxFielPath,wdx_sheet_name,start_time_data_year,start_time_data_hour,end_time_data_year,end_time_data_hour\
         ,data_setupFP,name_data,data_startNum,data_endNum,data_maxNum,ok_or_ng,effective_running_time,timestamp,error_running_time\
         ,divide_Time_list,Space_occupation_Value)
