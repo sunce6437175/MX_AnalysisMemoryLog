@@ -153,7 +153,8 @@ class Analysism:
                                             pass
                                             # print("不知道啥数据%s"%(a))
                                     else:
-                                        print("内存数据不满足4位")
+                                        pass
+                                        # print("内存数据不满足4位")
                                 else:
                                     pass
                                     # print("无效数据%s"%(a))
@@ -251,7 +252,8 @@ class Analysism:
                                         b = a[5]
                                         tempList.append(int(b[:-1]))
                                     else:
-                                        print("内存数据不满足4位")
+                                        pass
+                                        # print("内存数据不满足4位")
                                 else:
                                     pass
                             else:
@@ -435,8 +437,11 @@ def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time
                                             hourline = (kline[1]).strip()
                                             bblist.append(hourline.strip(']'))
                                             if kline[5] != None:
-                                                a = (kline[5].strip())
-                                                fflist.append(int(a[:-1]))
+                                                if kline[5] != 'S' and kline[5] != 'R':
+                                                    a = (kline[5].strip())
+                                                    fflist.append(int(a[:-1]))
+                                                else:
+                                                    print('存在R和S的是包括CPU字段的log')
                                             else:
                                                 break
                                         elif "END" in kline:
@@ -792,7 +797,12 @@ if __name__ == '__main__':
     # 获取当前时间
     daytime = datetime.datetime.now().date()
     boll = is_workday(daytime)  # 输出结果为bool值，True为工作日，False为休息日。
-    
+
+    # 获取当前时间
+    str_daytime = str(daytime)
+    timesfile  = str_daytime.replace('-','')
+    tname = two_abs_join(KeyType.timelinePath,timesfile)
+
     wdx_sheet_name = '常规版本稳定性测试结果'
     namelist = []    # sheet页名称汇总
     readPath = ''    # 读取配置路径
@@ -829,7 +839,8 @@ if __name__ == '__main__':
     mail_Error_Pass_str = ''       # 指定的报错的收件人拼成字符串格式
     mail_passCc_str = ''          # 邮件抄送人员list拼接成字符串格式
     mail_Pass_regulator = 'sunc@meixing.com'     # 邮件收件人管理者
-    mailTitle = "【CNS3.0_SOP2_MA】稳定性log分析及填写报告-反馈"
+    mailday = timesfile
+    mailTitle = "【CNS3.0_SOP2_MA】稳定性log分析及填写报告-反馈" + '-' + mailday 
     loglist = []                # 存在log汇总
     # 判断稳定性放置log文件夹内是否为空
     # years = datetime.datetime.now().year
@@ -841,16 +852,17 @@ if __name__ == '__main__':
     #     day = str(day)
     # timesfile  = str(years) + str(months) + day
 
-    # 获取当前时间
-    daytime = datetime.datetime.now().date()
-
-    str_daytime = str(daytime)
-    timesfile  = str_daytime.replace('-','')
-
-    tname = two_abs_join(KeyType.timelinePath,timesfile)
-
     if os.path.exists(tname):
         print('%s 文件夹已存在'%(tname))
+        if os.path.getsize(tname) != None:
+            loglist = checkFile(tname)
+            print('%s文件夹不是空的'%(tname))
+            print(loglist)
+            read_time_wirte_json(loglist)   # 自动读取log时间，写入新json文件并运用
+
+        else:
+            print('%s文件夹是空的'%(tname))
+            # 发邮件通知大家更新
     else:
         print('%s 文件夹不存在'%(tname))
         mkdir(tname)
@@ -863,14 +875,7 @@ if __name__ == '__main__':
         manager = EmailManager(mail_Pass_regulator,mail_passCc_str,mailMsg,mailTitle,Files)
         manager.sendEmail()
 
-    if os.path.getsize(tname):
-        print('%s文件夹是空的'%(tname))
-        # 发邮件通知大家更新
-    else:
-        loglist = checkFile(tname)
-        print('%s文件夹不是空的'%(tname))
-        print(loglist)
-        read_time_wirte_json(loglist)   # 自动读取log时间，写入新json文件并运用
+
 
      # 读取json 配置文件路径
     with open(KeyType.testconfigJsonPath,'r',encoding='UTF-8') as c:
