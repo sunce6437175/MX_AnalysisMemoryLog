@@ -3,7 +3,7 @@
 
 # WDXStability report import
 from __future__ import print_function
-import os, mimetypes
+import os, mimetypes,sys
 import datetime
 import json
 import time
@@ -25,7 +25,6 @@ from email.mime.application import MIMEApplication
 from PIL import ImageGrab
 # 获取中国节假日api
 from chinese_calendar import is_workday
-# form se
 
 # 配置参数路径class
 class KeyType:
@@ -47,6 +46,33 @@ class KeyType:
     timelineName = "//192.168.2.22/cns3.0_sop2_ma/04.C Sample/03.非功能测试/稳定性测试/"
     
     timelinePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),timelineName).replace("\\",'/')
+
+
+class SVNKeyType:
+    SVNPath =  os.path.join('D:',os.sep,'SOP2_MA','02.工程文档库','29.系统测试','293.测试结果','C-Sample','非功能性测试','01.稳定性测试')
+
+    SVNlistPath =  'CNS3.0_SOP2_MA_ST_Checklist_合格性测试_稳定性测试.xlsx'
+
+    SVNAllPath = os.path.join('D:',os.sep,'SOP2_MA','02.工程文档库','29.系统测试','293.测试结果','C-Sample','非功能性测试','01.稳定性测试','CNS3.0_SOP2_MA_ST_Checklist_合格性测试_稳定性测试.xlsx')
+
+    # SVN 更新
+    updateSVNstr = 'svn update' 
+    # SVN 显示日志
+    logSVNstr = 'svn log -v'
+    # SVN 加锁
+    lockSVNstr = 'svn lock -m “加锁稳定性文档”'
+    # SVN 解锁  + 文件
+    unlockSVNstr = 'svn unlock'
+    # SVN 提交
+    # commitSVNstr = 'svn commit -m “add test file for my test”'
+    # SVN提交后想继续锁定，增加如下参数
+    commitSVNstr = (('svn commit %s -m "自动更新稳定性文档"')%(SVNAllPath))
+    # 查看文件是否为锁定状态
+    SVNstatus = 'svn status'
+    # svn: E200009: Commit failed (details follow)
+    SVNE200009Path = os.path.join('D:',os.sep,'SOP2_MA','02.工程文档库','29.系统测试','293.测试结果','C-Sample','非功能性测试')
+    # SVNE200009 = 'svn add 01.稳定性测试 --force'
+    SVNE200009 = 'svn add'
 
 class Analysism:
     def __init__(self,name,startTime,finishTime,readPath,writePath,exclPath,KPI,secondaryMaximum,divide_The_Value,divide_The_Time,pState,SpaceUsageKPI):
@@ -498,11 +524,24 @@ def initializeReadExcel(data_wdx_path,sheet_name,startTimeyear,startTimehour,end
     data_maxNum,test_Result,effective_running_time,timestamp,error_running_time,divide_Time_list,Space_occupation_Value):
     oldwb = openpyxl.load_workbook(data_wdx_path)
     oldws = oldwb[sheet_name]
-    # 清空运行耗时之前备注的所以写入信息
-    for row in oldws['C5:V13']:
+    # 清空运行耗时之前的【前提条件】
+    for row in oldws['C4:Y8']:
         for cell in row:
             cell.value = ''
-
+    
+    # 清空 期待结果 之前的【更新结果】
+    for row in oldws['Z4:AF8']:
+        for cell in row:
+            cell.value = ''
+    
+    for row in oldws['AH8:AJ8']:
+        for cell in row:
+            cell.value = ''
+    # 清空 期待结果 之后的【更新结果】
+    for row in oldws['AL4:AP8']:
+        for cell in row:
+            cell.value = ''
+    
     oldwb.save(data_wdx_path)
     oldwb.close()
     print('--write_to_excel-路径-%s'%data_wdx_path)
@@ -519,55 +558,55 @@ def readExcel(data_wdx_path,sheet_name,startTimeyear,startTimehour,endTimeyear,e
     # 添加运行时间
     for i in range(1,len(effective_running_time)+1):
         datatime = effective_running_time[i-1]
-        oldws.cell(row = i + 4,column = 23).value = datatime
+        oldws.cell(row = i + 3,column = 26).value = datatime
     # 添加开始日期
     for i in range(1,len(startTimeyear)+1):
         startTime = startTimeyear[i-1]
-        oldws.cell(row = i + 4,column = 24).value = startTime
+        oldws.cell(row = i + 3,column = 27).value = startTime
     # 添加开始时间
     for i in range(1,len(startTimehour)+1):
         startTime = startTimehour[i-1]
-        oldws.cell(row = i + 4,column = 25).value = startTime
+        oldws.cell(row = i + 3,column = 28).value = startTime
     # 添加开始内存
     for i in range(1,len(data_startNum)+1):
         datastart = data_startNum[i-1]
-        oldws.cell(row = i + 4,column = 26).value = datastart
+        oldws.cell(row = i + 3,column = 29).value = datastart
     # 添加结束日期
     for i in range(1,len(endTimeyear)+1):
         startTime = endTimeyear[i-1]
-        oldws.cell(row = i + 4,column = 27).value = startTime
+        oldws.cell(row = i + 3,column = 30).value = startTime
     # 添加结束时间
     for i in range(1,len(endTimehour)+1):
         startTime = endTimehour[i-1]
-        oldws.cell(row = i + 4,column = 28).value = startTime
+        oldws.cell(row = i + 3,column = 31).value = startTime
     # 添加结束内存
     for i in range(1,len(data_endNum)+1):
         dataend = data_endNum[i-1]
-        oldws.cell(row = i + 4,column = 29).value = dataend
+        oldws.cell(row = i + 3,column = 32).value = dataend
     # 添加峰值内存
     for i in range(1,len(data_maxNum)+1):
         datamax = data_maxNum[i-1]
-        oldws.cell(row = i + 4,column = 31).value = datamax
+        oldws.cell(row = i + 3,column = 34).value = datamax
     # 添加空间占用峰值
     for i in range(1,len(Space_occupation_Value)+1):
         spcmax = Space_occupation_Value[i-1]
-        oldws.cell(row = i + 4,column = 32).value = spcmax
+        oldws.cell(row = i + 3,column = 35).value = spcmax
     # 添加log路径
     for i in range(1,len(dataPath)+1):
         logpath = dataPath[i-1]
-        oldws.cell(row = i + 4,column = 33).value = logpath
+        oldws.cell(row = i + 3,column = 36).value = logpath
     # 添加测试结果状态
     for i in range(1,len(test_Result)+1):
         datatest = test_Result[i-1]
-        oldws.cell(row = i + 4,column = 35).value = datatest
+        oldws.cell(row = i + 3,column = 38).value = datatest
     # 添加备注信息（超1G达到时间 和 第一次超1G的时间戳 + 当在1000-1024之间长时间保持 + 未超1G但开始结束的落差值在300MB以上）  
     for i in range(1,len(error_running_time)+1):
         datatest = (error_running_time[i-1])
-        oldws.cell(row = i + 4,column = 37).value = datatest[:-1]
+        oldws.cell(row = i + 3,column = 41).value = datatest[:-1]
     # 添加测试人员姓名（英文）
     for i in range(1,len(name_data)+1):
         name = name_data[i-1]
-        oldws.cell(row = i + 4,column = 38).value = name
+        oldws.cell(row = i + 3,column = 42).value = name
 
     oldwb.save(data_wdx_path)
     print('--write_to_excel-路径-%s'%data_wdx_path)
@@ -792,6 +831,127 @@ def checkFile(path):
             a.append(i)
     return a
 
+# 汇总SVN表格判断是否已锁定
+def updateSVN():
+    updateSVN = os.popen((SVNKeyType.updateSVNstr),'r')
+    updateSVNs = updateSVN.read()
+    print(updateSVNs)
+# 汇总SVN表格锁定
+def lockSVN():
+    lockSVN = os.popen((SVNKeyType.lockSVNstr + ' ' + SVNKeyType.SVNlistPath),'r')
+    lockSVNs = lockSVN.read()
+    print('已锁定→%s'%(lockSVNs))
+# 汇总SVN表格commit上传后解锁
+def commitSVN():
+    commitSVN = os.popen((SVNKeyType.commitSVNstr),'r')
+    commitSVNs = commitSVN.read()
+    print('已上传→%s'%(commitSVNs))
+ # 解锁SVN指定文档
+# 解锁
+def unlockSVN():
+    unlockSVN = os.popen((SVNKeyType.unlockSVNstr + ' ' + SVNKeyType.SVNlistPath),'r')
+    unlockSVNs = unlockSVN.read()
+    print(unlockSVNs)
+# 查看SVN锁定状态
+def statsSVN():
+    statsSVN = os.popen((SVNKeyType.SVNstatus + ' ' + SVNKeyType.SVNlistPath),'r')
+    statsSVNs = statsSVN.read()
+    print(statsSVNs)
+    return statsSVNs
+# svn: E200009
+def SVNE29():
+    os.chdir(SVNKeyType.SVNE200009Path)
+    SVNE200009 = os.popen((SVNKeyType.SVNE200009 + ' ' + '01.稳定性测试' + ' ' + '--force'),'r')
+    SVNE29s = SVNE200009.read()
+    print(SVNE29s)
+
+# 判断T30 稳定性稳定的可以写入的第几行
+def judgeRow(path):
+
+    wb = openpyxl.load_workbook(path)
+    sheet = wb['稳定性测试结果']
+    # print('最大行=%d'%sheet.max_row)
+    # print('最大列=%d'%sheet.max_column)
+    # 期待结果列
+    max_row_for_AL = max((AL.row for AL in sheet['AL'] if AL.value is not None))
+    # 测试人员列
+    max_row_for_AP = max((AP.row for AP in sheet['AP'] if AP.value is not None))
+    # 内存峰值列
+    max_row_for_AH = max((AH.row for AH in sheet['AH'] if AH.value is not None))
+
+    # print('测试结果有效值=%d'%max_row_for_AL)
+    # print('测试人员有效值=%d'%max_row_for_AP)
+    # print('测试峰值有效值=%d'%max_row_for_AH)
+    wb.close()
+    return max_row_for_AL
+
+# 自定义生成汇总Excel写入到SVN T30稳定性结果中
+def wirteSVNExcel(data_wdx_path,sheet_name,startTimeyear,startTimehour,endTimeyear,endTimehour,dataPath,name_data,data_startNum,data_endNum,\
+    data_maxNum,test_Result,effective_running_time,timestamp,error_running_time,divide_Time_list,Space_occupation_Value,max_row_for_x):
+    oldwb = openpyxl.load_workbook(data_wdx_path)
+    oldws = oldwb[sheet_name]
+    # 添加备注信息（超1000-1024之间的保持耗时）   暂时取消与36列备注信息和平统计
+    # for i in range(1,len(divide_Time_list)+1):
+    #     datatest = (divide_Time_list[i-1])
+    #     oldws.cell(row = i + 4,column = 22).value = datatest[:-1]
+    # 添加运行时间
+    for i in range(1,len(effective_running_time)+1):
+        datatime = effective_running_time[i-1]
+        oldws.cell(row = i + max_row_for_x,column = 26).value = datatime
+    # 添加开始日期
+    for i in range(1,len(startTimeyear)+1):
+        startTime = startTimeyear[i-1]
+        oldws.cell(row = i + max_row_for_x,column = 27).value = startTime
+    # 添加开始时间
+    for i in range(1,len(startTimehour)+1):
+        startTime = startTimehour[i-1]
+        oldws.cell(row = i + max_row_for_x,column = 28).value = startTime
+    # 添加开始内存
+    for i in range(1,len(data_startNum)+1):
+        datastart = data_startNum[i-1]
+        oldws.cell(row = i + max_row_for_x,column = 29).value = datastart
+    # 添加结束日期
+    for i in range(1,len(endTimeyear)+1):
+        startTime = endTimeyear[i-1]
+        oldws.cell(row = i + max_row_for_x,column = 30).value = startTime
+    # 添加结束时间
+    for i in range(1,len(endTimehour)+1):
+        startTime = endTimehour[i-1]
+        oldws.cell(row = i + max_row_for_x,column = 31).value = startTime
+    # 添加结束内存
+    for i in range(1,len(data_endNum)+1):
+        dataend = data_endNum[i-1]
+        oldws.cell(row = i + max_row_for_x,column = 32).value = dataend
+    # 添加峰值内存
+    for i in range(1,len(data_maxNum)+1):
+        datamax = data_maxNum[i-1]
+        oldws.cell(row = i + max_row_for_x,column = 34).value = datamax
+    # 添加空间占用峰值
+    for i in range(1,len(Space_occupation_Value)+1):
+        spcmax = Space_occupation_Value[i-1]
+        oldws.cell(row = i + max_row_for_x,column = 35).value = spcmax
+    # 添加log路径
+    for i in range(1,len(dataPath)+1):
+        logpath = dataPath[i-1]
+        oldws.cell(row = i + max_row_for_x,column = 36).value = logpath
+    # 添加测试结果状态
+    for i in range(1,len(test_Result)+1):
+        datatest = test_Result[i-1]
+        oldws.cell(row = i + max_row_for_x,column = 38).value = datatest
+    # 添加备注信息（超1G达到时间 和 第一次超1G的时间戳 + 当在1000-1024之间长时间保持 + 未超1G但开始结束的落差值在300MB以上）  
+    for i in range(1,len(error_running_time)+1):
+        datatest = (error_running_time[i-1])
+        oldws.cell(row = i + max_row_for_x,column = 41).value = datatest[:-1]
+    # 添加测试人员姓名（英文）
+    for i in range(1,len(name_data)+1):
+        name = name_data[i-1]
+        oldws.cell(row = i + max_row_for_x,column = 42).value = name
+
+    oldwb.save(data_wdx_path)
+    oldwb.close()
+    print('--write_SVN_to_excel-路径-%s'%data_wdx_path)
+
+
 if __name__ == '__main__':
 
     # 获取当前时间
@@ -943,14 +1103,68 @@ if __name__ == '__main__':
                         print("JSON文件设置项配置错误")  
             else:
                 print("不存在Output_Path和Valgrind_File文件夹")
-
+# 自定义的内存error创建excel内容和数据
     write_to_excel(namelist,readPath,writePath,timestamp,error_running_time)
+# 汇总Excel表格初始化
     initializeReadExcel(writeWdxFielPath,wdx_sheet_name,start_time_data_year,start_time_data_hour,end_time_data_year,end_time_data_hour\
         ,data_setupFP,name_data,data_startNum,data_endNum,data_maxNum,ok_or_ng,effective_running_time,timestamp,error_running_time\
         ,divide_Time_list,Space_occupation_Value)
+# 自定义生成汇总Excel表格（已稳定性结果为模板）读已知文档
     readExcel(writeWdxFielPath,wdx_sheet_name,start_time_data_year,start_time_data_hour,end_time_data_year,end_time_data_hour\
         ,data_setupFP,name_data,data_startNum,data_endNum,data_maxNum,ok_or_ng,effective_running_time,timestamp,error_running_time\
         ,divide_Time_list,Space_occupation_Value)
+
+    #判断SVN文件是否存在 
+    if SVNKeyType.SVNPath and os.path.exists(SVNKeyType.SVNPath):
+        os.chdir(SVNKeyType.SVNPath)
+        try:
+            # 更新SVN
+            updateSVN()
+            ss = statsSVN()
+            print(ss)
+            if ss != None:
+                if 'K' in ss:
+                    print(ss)
+                    print('已锁定')
+                    mail_Error_Pass_str = 'sunc@meixing.com'
+                    mail_passCc_str = 'zhaotj@meixing.com'
+                    mailTitle = '稳定性测试 已被SVN锁定！无法自动更新SVN结果'
+                    mailMsg = '''
+                    <p><b>D盘的CNS3.0_SOP2_MA_ST_Checklist_合格性测试_稳定性测试.xlsx已被SVN锁定！无法自动更新SVN结果</b></p>
+                    <p>自动化程序整个退出，当天内再次使用需要使用手动触发</p>
+                    '''
+                    manager = EmailManager(mail_Error_Pass_str,mail_passCc_str,mailMsg,mailTitle,Files)
+                    manager.sendEmail()
+                    print("程序退出测试")
+                    sys.exit()
+                    print("程序退出了不执行这里")
+                else:
+                    print(ss)
+                    print('未锁定')
+                    lockSVN()
+
+                    max_row_for_x = judgeRow(SVNKeyType.SVNAllPath)
+                    wdx_sheet_name = '稳定性测试结果'
+ 
+                    wirteSVNExcel(SVNKeyType.SVNAllPath,wdx_sheet_name,start_time_data_year,start_time_data_hour,end_time_data_year,end_time_data_hour\
+        ,data_setupFP,name_data,data_startNum,data_endNum,data_maxNum,ok_or_ng,effective_running_time,timestamp,error_running_time\
+        ,divide_Time_list,Space_occupation_Value,max_row_for_x)
+                    # svn: E200009问题解决
+                    # SVNE29()
+                    commitSVN()
+                    updateSVN()
+                    sc = statsSVN()
+                    print(sc)
+
+            else:
+                print('其它')
+                
+            # updateSVN.close()
+        except Exception:
+            print('Error: ')
+        else:
+            print('无异常')
+
 
     # 收件人与抄送人自动判断,判断后并发送结果
     if namelist :
@@ -985,7 +1199,8 @@ if __name__ == '__main__':
 
         if boll :
             mailMsg = '''
-            <p><b>当天的稳定性log分析及填写报告已生成，请参看附件！</b></p>
+            <p><b>当天的稳定性log分析及填写报告已自动更新到SVN文档中，大家在接收到此邮件后请自行更新各自稳定性放置前提条件！</b></p>
+            <p>当天的稳定性log分析及填写报告已生成，请参看附件！</p>
             <p>稳定性测试结果存在<b><font color="red">NG</font></b>，以上收件人请注意！</p>
             <p>稳定性结果更新地址：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
             <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\</a></p>
@@ -1011,8 +1226,9 @@ if __name__ == '__main__':
         print('配置项中原有抄送地址+除管理者外其他收件人：%s'%(mail_full_pass))
         if boll :
             mailMsg = '''
-            <p><b>当天的稳定性log分析及填写报告已生成，请参看附件！</b></p>
-            <p>稳定性测试结果全部<b>OK</b></p>
+            <p><b>当天的稳定性log分析及填写报告已自动更新到SVN文档中，大家在接收到此邮件后请自行更新各自稳定性放置前提条件！</b></p>
+            <p>当天的稳定性log分析及填写报告已生成，请参看附件！</p>
+            <p>稳定性测试结果全部<b><font color="green">OK</font></b></p>
             <p>稳定性结果更新地址：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
             <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\</a></p>
             '''
