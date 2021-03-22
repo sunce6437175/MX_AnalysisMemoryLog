@@ -1113,59 +1113,59 @@ if __name__ == '__main__':
     readExcel(writeWdxFielPath,wdx_sheet_name,start_time_data_year,start_time_data_hour,end_time_data_year,end_time_data_hour\
         ,data_setupFP,name_data,data_startNum,data_endNum,data_maxNum,ok_or_ng,effective_running_time,timestamp,error_running_time\
         ,divide_Time_list,Space_occupation_Value)
+    if boll:
+        #判断SVN文件是否存在 
+        if SVNKeyType.SVNPath and os.path.exists(SVNKeyType.SVNPath):
+            os.chdir(SVNKeyType.SVNPath)
+            try:
+                # 更新SVN
+                updateSVN()
+                ss = statsSVN()
+                print(ss)
+                if ss != None:
+                    if 'K' in ss:
+                        print(ss)
+                        print('已锁定')
+                        mail_Error_Pass_str = 'sunc@meixing.com'
+                        mail_passCc_str = 'zhaotj@meixing.com'
+                        mailTitle = '稳定性测试 已被SVN锁定！无法自动更新SVN结果'
+                        mailMsg = '''
+                        <p><b>D盘的CNS3.0_SOP2_MA_ST_Checklist_合格性测试_稳定性测试.xlsx已被SVN锁定！无法自动更新SVN结果</b></p>
+                        <p>自动化程序整个退出，当天内再次使用需要使用手动触发</p>
+                        '''
+                        manager = EmailManager(mail_Error_Pass_str,mail_passCc_str,mailMsg,mailTitle,Files)
+                        manager.sendEmail()
+                        print("程序退出测试")
+                        sys.exit()
+                        print("程序退出了不执行这里")
+                    else:
+                        print(ss)
+                        print('未锁定')
+                        lockSVN()
 
-    #判断SVN文件是否存在 
-    if SVNKeyType.SVNPath and os.path.exists(SVNKeyType.SVNPath):
-        os.chdir(SVNKeyType.SVNPath)
-        try:
-            # 更新SVN
-            updateSVN()
-            ss = statsSVN()
-            print(ss)
-            if ss != None:
-                if 'K' in ss:
-                    print(ss)
-                    print('已锁定')
-                    mail_Error_Pass_str = 'sunc@meixing.com'
-                    mail_passCc_str = 'zhaotj@meixing.com'
-                    mailTitle = '稳定性测试 已被SVN锁定！无法自动更新SVN结果'
-                    mailMsg = '''
-                    <p><b>D盘的CNS3.0_SOP2_MA_ST_Checklist_合格性测试_稳定性测试.xlsx已被SVN锁定！无法自动更新SVN结果</b></p>
-                    <p>自动化程序整个退出，当天内再次使用需要使用手动触发</p>
-                    '''
-                    manager = EmailManager(mail_Error_Pass_str,mail_passCc_str,mailMsg,mailTitle,Files)
-                    manager.sendEmail()
-                    print("程序退出测试")
-                    sys.exit()
-                    print("程序退出了不执行这里")
+                        max_row_for_x = judgeRow(SVNKeyType.SVNAllPath)
+                        wdx_sheet_name = '稳定性测试结果'
+    
+                        wirteSVNExcel(SVNKeyType.SVNAllPath,wdx_sheet_name,start_time_data_year,start_time_data_hour,end_time_data_year,end_time_data_hour\
+            ,data_setupFP,name_data,data_startNum,data_endNum,data_maxNum,ok_or_ng,effective_running_time,timestamp,error_running_time\
+            ,divide_Time_list,Space_occupation_Value,max_row_for_x)
+                        # svn: E200009问题解决
+                        # SVNE29()
+                        commitSVN()
+                        updateSVN()
+                        sc = statsSVN()
+                        print(sc)
+
                 else:
-                    print(ss)
-                    print('未锁定')
-                    lockSVN()
-
-                    max_row_for_x = judgeRow(SVNKeyType.SVNAllPath)
-                    wdx_sheet_name = '稳定性测试结果'
- 
-                    wirteSVNExcel(SVNKeyType.SVNAllPath,wdx_sheet_name,start_time_data_year,start_time_data_hour,end_time_data_year,end_time_data_hour\
-        ,data_setupFP,name_data,data_startNum,data_endNum,data_maxNum,ok_or_ng,effective_running_time,timestamp,error_running_time\
-        ,divide_Time_list,Space_occupation_Value,max_row_for_x)
-                    # svn: E200009问题解决
-                    # SVNE29()
-                    commitSVN()
-                    updateSVN()
-                    sc = statsSVN()
-                    print(sc)
-
+                    print('其它')
+                    
+                # updateSVN.close()
+            except Exception:
+                print('Error: ')
             else:
-                print('其它')
-                
-            # updateSVN.close()
-        except Exception:
-            print('Error: ')
-        else:
-            print('无异常')
-
-
+                print('无异常')
+    else:
+         print('今天 %s 是节假日,无需更新SVN文档'%daytime)
     # 收件人与抄送人自动判断,判断后并发送结果
     if namelist :
         for d in (config.keys()):
