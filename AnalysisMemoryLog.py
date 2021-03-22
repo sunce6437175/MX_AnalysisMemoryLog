@@ -1113,6 +1113,7 @@ if __name__ == '__main__':
     readExcel(writeWdxFielPath,wdx_sheet_name,start_time_data_year,start_time_data_hour,end_time_data_year,end_time_data_hour\
         ,data_setupFP,name_data,data_startNum,data_endNum,data_maxNum,ok_or_ng,effective_running_time,timestamp,error_running_time\
         ,divide_Time_list,Space_occupation_Value)
+#SVN判断节假日是否上传 
     if boll:
         #判断SVN文件是否存在 
         if SVNKeyType.SVNPath and os.path.exists(SVNKeyType.SVNPath):
@@ -1155,7 +1156,6 @@ if __name__ == '__main__':
                         updateSVN()
                         sc = statsSVN()
                         print(sc)
-
                 else:
                     print('其它')
                     
