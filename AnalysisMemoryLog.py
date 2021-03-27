@@ -190,8 +190,6 @@ class Analysism:
                                 # print("空间占用数据：%s"%(a))
                                 # print("空间占用个数：%s"%len(a))
                                 # print("该行数的超过边界小于5的所在行%s"%(a))
-
-
                     else:
                         pass
                     tempNum = tempNum + 1
@@ -219,7 +217,7 @@ class Analysism:
 
         Analysism.spaceUsageNum.append(max(tempList))
         if maxNum >= float(self.SpaceUsageKPI) :
-            # print("空间占用NG %s"%(maxNum))
+
             with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
                 for xline in read_file:
                     xline = xline.strip('\n')
@@ -451,7 +449,7 @@ def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time
                                     aalist = []
                                     bblist = []
                                     fflist = []
-                                    print
+ 
                                     for kline in readline:
                                         
                                         if "BEGIN" in kline:
@@ -631,8 +629,6 @@ class EmailManager:
     #     # 3. 获取 行与列
     #     nrow = sht.api.UsedRange.Rows.count
     #     ncol = sht.api.UsedRange.Columns.count
-    #     print(nrow)
-    #     print(ncol)
     
     #     # 4. 获取有内容的 range
     #     range_val = sht.range(
@@ -746,10 +742,10 @@ def read_time_wirte_json(loglist):
                         data_grade = data_perison["grade"]
                         data_name = data_perison["name"]
                         data_setupFileName = data_grade['setupFilePath']
-                        print(data_setupFileName)
+                        # print(data_setupFileName)
                         # data_setupFilePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),data_setupFileName).replace("\\",'/')
                         data_setupBasePath = two_abs_join(KeyType.timelinePath,timesfile)
-                        print(data_setupBasePath)
+                        # print(data_setupBasePath)
                         # data = two_abs_join(data_setupBasePath,data_setupFileName)
 
                         data_grade['setupFilePath'] = two_abs_join(data_setupBasePath,data_setupFileName).replace('\\','/')
@@ -757,7 +753,7 @@ def read_time_wirte_json(loglist):
                         # print(data_setupFilePath)
                         # 找到换关键字的第一行
                         if data_setupFileName in loglist:
-                            print('1')
+
                             with open(data_setupFilePath,'r',encoding = "UTF-8",errors = "ignore") as read_file:
                                 for line in read_file:
                                     if KeyType.keyMXNavi in line:
@@ -1035,8 +1031,6 @@ if __name__ == '__main__':
         manager = EmailManager(mail_Pass_regulator,mail_passCc_str,mailMsg,mailTitle,Files)
         manager.sendEmail()
 
-
-
      # 读取json 配置文件路径
     with open(KeyType.testconfigJsonPath,'r',encoding='UTF-8') as c:
         config = json.load(c)
@@ -1122,7 +1116,7 @@ if __name__ == '__main__':
                 # 更新SVN
                 updateSVN()
                 ss = statsSVN()
-                print(ss)
+                # print(ss)
                 if ss != None:
                     if 'K' in ss:
                         print(ss)
