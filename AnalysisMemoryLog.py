@@ -47,7 +47,7 @@ class KeyType:
     
     timelinePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),timelineName).replace("\\",'/')
 
-
+# SVN配置参数路径class
 class SVNKeyType:
     SVNPath =  os.path.join('D:',os.sep,'SOP2_MA','02.工程文档库','29.系统测试','293.测试结果','C-Sample','非功能性测试','01.稳定性测试')
 
@@ -207,15 +207,17 @@ class Analysism:
         stmpLine = Analysism.spaceUsageList      # 调用父类check_tmpLine方法并赋值起始行，防止初始化循环调用
 
         tempList = stmpLine
-        startNum = float('%.2f' %(tempList[0]))
-        endNum = float('%.2f' %(tempList[-1]))
-        maxNum = float('%.2f' %(max(tempList))) 
 
-        startNumstr = '开始占用空间' + str(tempList[0]) + ' GB'
-        endNumstr = '结束占用空间' + str(tempList[-1]) + ' GB'
-        maxNumastr = '最大占用空间' + str(max(tempList)) + ' GB'
+        startNum = float('%.7g' %(tempList[0]))
+        endNum = float('%.7g' %(tempList[-1]))
+        maxNum = float('%.7g' %(max(tempList))) 
+
+        startNumstr = '开始占用空间' + str(startNum) + ' GB'
+        endNumstr = '结束占用空间' + str(endNum) + ' GB'
+        maxNumastr = '最大占用空间' + str(maxNum) + ' GB'
 
         Analysism.spaceUsageNum.append(max(tempList))
+    
         if maxNum >= float(self.SpaceUsageKPI) :
 
             with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
@@ -522,21 +524,21 @@ def initializeReadExcel(data_wdx_path,sheet_name,startTimeyear,startTimehour,end
     data_maxNum,test_Result,effective_running_time,timestamp,error_running_time,divide_Time_list,Space_occupation_Value):
     oldwb = openpyxl.load_workbook(data_wdx_path)
     oldws = oldwb[sheet_name]
-    # 清空运行耗时之前的【前提条件】
-    for row in oldws['C4:Y8']:
+    # 清空运行耗时之前的【前提条件】 
+    for row in oldws['C4:Y10']:
         for cell in row:
             cell.value = ''
     
     # 清空 期待结果 之前的【更新结果】
-    for row in oldws['Z4:AF8']:
+    for row in oldws['Z4:AF10']:
         for cell in row:
             cell.value = ''
     
-    for row in oldws['AH8:AJ8']:
+    for row in oldws['AH4:AJ10']:
         for cell in row:
             cell.value = ''
     # 清空 期待结果 之后的【更新结果】
-    for row in oldws['AL4:AP8']:
+    for row in oldws['AL4:AP10']:
         for cell in row:
             cell.value = ''
     
