@@ -207,39 +207,40 @@ class Analysism:
         stmpLine = Analysism.spaceUsageList      # 调用父类check_tmpLine方法并赋值起始行，防止初始化循环调用
 
         tempList = stmpLine
+        #添加空间占用不为空的判断
+        if len(tempList) != 0:
+            startNum = float('%.7g' %(tempList[0]))
+            endNum = float('%.7g' %(tempList[-1]))
+            maxNum = float('%.7g' %(max(tempList))) 
 
-        startNum = float('%.7g' %(tempList[0]))
-        endNum = float('%.7g' %(tempList[-1]))
-        maxNum = float('%.7g' %(max(tempList))) 
+            startNumstr = '开始占用空间' + str(startNum) + ' GB'
+            endNumstr = '结束占用空间' + str(endNum) + ' GB'
+            maxNumastr = '最大占用空间' + str(maxNum) + ' GB'
 
-        startNumstr = '开始占用空间' + str(startNum) + ' GB'
-        endNumstr = '结束占用空间' + str(endNum) + ' GB'
-        maxNumastr = '最大占用空间' + str(maxNum) + ' GB'
+            Analysism.spaceUsageNum.append(max(tempList))
+        
+            if maxNum >= float(self.SpaceUsageKPI) :
 
-        Analysism.spaceUsageNum.append(max(tempList))
-    
-        if maxNum >= float(self.SpaceUsageKPI) :
+                with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
+                    for xline in read_file:
+                        xline = xline.strip('\n')
 
-            with open(self.readPath,'r',encoding='UTF-8',errors="ignore") as read_file:
-                for xline in read_file:
-                    xline = xline.strip('\n')
-
-                    if KeyType.deWeightTime in xline:
-                        continue
-                    else:
-                        a = xline.split()
-                        if len(a) < 5 :
-                            if KeyType.spaceUsage in a:
-                                b = float(a[2])/1024/1024
-                                
-                                if b >= float(self.SpaceUsageKPI):
-                                    print("超%s的所行%s 和大小值%.2f"%(self.SpaceUsageKPI,int(tempLienNum),b))
-                                else:
-                                    continue
-                    tempLienNum = tempLienNum + 1
-        print(startNumstr)
-        print(endNumstr)
-        print(maxNumastr)
+                        if KeyType.deWeightTime in xline:
+                            continue
+                        else:
+                            a = xline.split()
+                            if len(a) < 5 :
+                                if KeyType.spaceUsage in a:
+                                    b = float(a[2])/1024/1024
+                                    
+                                    if b >= float(self.SpaceUsageKPI):
+                                        print("超%s的所行%s 和大小值%.2f"%(self.SpaceUsageKPI,int(tempLienNum),b))
+                                    else:
+                                        continue
+                        tempLienNum = tempLienNum + 1
+            print(startNumstr)
+            print(endNumstr)
+            print(maxNumastr)
 
         return (Analysism.spaceUsageNum)
 
