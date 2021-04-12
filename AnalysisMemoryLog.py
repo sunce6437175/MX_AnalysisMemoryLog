@@ -88,6 +88,7 @@ class Analysism:
         self.divide_The_Time = divide_The_Time
         self.pState = pState
         self.SpaceUsageKPI = SpaceUsageKPI
+        self.spaceUsageList = []        #空间占用
 
     startLineNum = 0    # 开始行数
     finishLineNum = 0   # 结束行数
@@ -105,8 +106,7 @@ class Analysism:
     error_running_time = []       #（超1G达到时间 和 第一次超1G的时间戳 + 当在1000-1024之间长时间保持 + 未超1G但开始结束的落差值在300MB以上）  
     divide_Time_list = []         #超过在1000 - 1024之间的连续时间耗时
     surpassTimeS = 0              #超过在1024放置时间
-    spaceUsageList = []         #空间占用
-    spaceUsageNum = []
+    spaceUsageNum = []            #空间占用最大值
 
     def check_tmpLine(self):
         tempLienNum = 0     # 标注行数
@@ -186,27 +186,26 @@ class Analysism:
                                     # print("无效数据%s"%(a))
                             elif KeyType.spaceUsage in a:
                                 c = a[2]
-                                Analysism.spaceUsageList.append(int(c)/1024/1024)
-                                # print("空间占用数据：%s"%(a))
-                                # print("空间占用个数：%s"%len(a))
-                                # print("该行数的超过边界小于5的所在行%s"%(a))
+                                self.spaceUsageList.append(int(c)/1024/1024)
+ 
                     else:
                         pass
                     tempNum = tempNum + 1
         else:
             pass
 
-        return(Analysism.effective_running_time,Analysism.timestamp,Analysism.error_running_time,Analysism.spaceUsageList)
+        return(Analysism.effective_running_time,Analysism.timestamp,Analysism.error_running_time,self.spaceUsageList)
     # 判断空间占用的开始和结束及最大和平均值
     def check_spaceUsage(self):
+
         tempLienNum = 0        # 标注行数
         tempList = []          # 标注列表
         tempNum = 0            # 对比行数
         KPIList = []         # 获取超KPI的数据列表
         stempList = []
-        stmpLine = Analysism.spaceUsageList      # 调用父类check_tmpLine方法并赋值起始行，防止初始化循环调用
-
+        stmpLine = self.spaceUsageList      # 调用父类check_tmpLine方法并赋值起始行，防止初始化循环调用
         tempList = stmpLine
+        
         #添加空间占用不为空的判断
         if len(tempList) != 0:
             startNum = float('%.7g' %(tempList[0]))
@@ -217,7 +216,7 @@ class Analysism:
             endNumstr = '结束占用空间' + str(endNum) + ' GB'
             maxNumastr = '最大占用空间' + str(maxNum) + ' GB'
 
-            Analysism.spaceUsageNum.append(max(tempList))
+            Analysism.spaceUsageNum.append(maxNum)
         
             if maxNum >= float(self.SpaceUsageKPI) :
 
@@ -229,18 +228,14 @@ class Analysism:
                             continue
                         else:
                             a = xline.split()
-                            if len(a) < 5 :
+                            if 2< len(a) < 5 :
                                 if KeyType.spaceUsage in a:
                                     b = float(a[2])/1024/1024
-                                    
                                     if b >= float(self.SpaceUsageKPI):
                                         print("超%s的所行%s 和大小值%.2f"%(self.SpaceUsageKPI,int(tempLienNum),b))
                                     else:
                                         continue
                         tempLienNum = tempLienNum + 1
-            print(startNumstr)
-            print(endNumstr)
-            print(maxNumastr)
 
         return (Analysism.spaceUsageNum)
 
