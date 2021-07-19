@@ -35,15 +35,15 @@ class KeyType:
     # #有效内容关键字
     keyMXNavi = "/usr/bin/MXNavi"
     # 最新批量json配置项 (从本地改为服务器路径)
-    configJsonName = "//192.168.2.22/cns3.0_sop2_ma/04.C Sample/03.非功能测试/稳定性测试/MX_AnalysisMemoryLog/config/config.json"
+    configJsonName = "//192.168.2.7/BugInfo_2021(5月12日启用)/cns3.0_sop2_ma/04.C Sample/03.非功能测试/稳定性测试/MX_AnalysisMemoryLog/config/config.json"
     # 最新批量json配置项地址获取(获取当前文件的绝对路径)
     configJsonPath = os.path.join(os.path.abspath(os.path.dirname(__file__)),configJsonName).replace("\\",'/')
     # 修改添加自动拾取时间的json配置项后写入文件 (从本地改为服务器路径)
-    testconfigJsonName = "//192.168.2.22/cns3.0_sop2_ma/04.C Sample/03.非功能测试/稳定性测试/MX_AnalysisMemoryLog/config/testJson.json"
+    testconfigJsonName = "//192.168.2.7/BugInfo_2021(5月12日启用)/cns3.0_sop2_ma/04.C Sample/03.非功能测试/稳定性测试/MX_AnalysisMemoryLog/config/testJson.json"
     # 修改添加自动拾取时间的json配置项后写入文件路径
     testconfigJsonPath = os.path.join(os.path.abspath(os.path.dirname(__file__)),testconfigJsonName).replace("\\",'/')
     # 批量判断文件路径
-    timelineName = "//192.168.2.22/cns3.0_sop2_ma/04.C Sample/03.非功能测试/稳定性测试/"
+    timelineName = "//192.168.2.7/BugInfo_2021(5月12日启用)/cns3.0_sop2_ma/04.C Sample/03.非功能测试/稳定性测试/"
     
     timelinePath = os.path.join(os.path.abspath(os.path.dirname(__file__)),timelineName).replace("\\",'/')
 
@@ -458,8 +458,8 @@ def write_to_excel(sheetnamelist,readPath,writePath,timestamp,error_running_time
                                             aalist.append(yearline.strip('['))
                                             hourline = (kline[1]).strip()
                                             bblist.append(hourline.strip(']'))
-                                            if kline[5] != None:
-                                                if kline[5] != 'S' and kline[5] != 'R':
+                                            if len(kline)>= 5 and kline[5] != None and kline[5].find('/usr/bin/MXNavi') != -1:
+                                                if kline[5] != 'S' and kline[5] != 'R'and kline[5] != 'main' and kline[5] != '/usr/bin/Intercom /var/MXNavi/c':
                                                     a = (kline[5].strip())
                                                     fflist.append(int(a[:-1]))
                                                 else:
@@ -1022,8 +1022,8 @@ if __name__ == '__main__':
         mkdir(tname)
         mailMsg = '''
             <p><b>今日文件夹已自动创建完毕，请提醒小伙伴们更新稳定性log！</b></p>
-            <p>稳定性结果更新地址：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
-            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\</a></p>
+            <p>稳定性结果更新地址：<a href="\\192.168.2.7\BugInfo_2021(5月12日启用)\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.7\BugInfo_2021(5月12日启用)\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
+            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.7\BugInfo_2021(5月12日启用)\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试">\\\\192.168.2.7\BugInfo_2021(5月12日启用)\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\</a></p>
             '''
 
         manager = EmailManager(mail_Pass_regulator,mail_passCc_str,mailMsg,mailTitle,Files)
@@ -1194,8 +1194,8 @@ if __name__ == '__main__':
             <p><b>当天的稳定性log分析及填写报告已自动更新到SVN文档中，大家在接收到此邮件后请自行更新各自稳定性放置前提条件！</b></p>
             <p>当天的稳定性log分析及填写报告已生成，请参看附件！</p>
             <p>稳定性测试结果存在<b><font color="red">NG</font></b>，以上收件人请注意！</p>
-            <p>稳定性结果更新地址：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
-            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\</a></p>
+            <p>稳定性结果更新地址：<a href="\\192.168.2.7\BugInfo_2021(5月12日启用)\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.7\BugInfo_2021(5月12日启用)\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
+            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.7\BugInfo_2021(5月12日启用)\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试">\\\\192.168.2.7\BugInfo_2021(5月12日启用)\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\</a></p>
             '''
             manager = EmailManager(mail_Error_Pass_str,mail_passCc_str,mailMsg,mailTitle,Files)
             manager.sendEmail()
@@ -1221,8 +1221,8 @@ if __name__ == '__main__':
             <p><b>当天的稳定性log分析及填写报告已自动更新到SVN文档中，大家在接收到此邮件后请自行更新各自稳定性放置前提条件！</b></p>
             <p>当天的稳定性log分析及填写报告已生成，请参看附件！</p>
             <p>稳定性测试结果全部<b><font color="green">OK</font></b></p>
-            <p>稳定性结果更新地址：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
-            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试">\\\\192.168.2.22\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\</a></p>
+            <p>稳定性结果更新地址：<a href="\\192.168.2.7\BugInfo_2021(5月12日启用)\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output">\\\\192.168.2.7\BugInfo_2021(5月12日启用)\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\MX_AnalysisMemoryLog\output</a></p>
+            <p>稳定性结果XshellLog上传路径：<a href="\\192.168.2.7\BugInfo_2021(5月12日启用)\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试">\\\\192.168.2.7\BugInfo_2021(5月12日启用)\cns3.0_sop2_ma\04.C Sample\03.非功能测试\稳定性测试\</a></p>
             '''
             okFiles = Files[1]
             manager = EmailManager(mail_Pass_regulator,mail_full_pass,mailMsg,mailTitle,okFiles)
